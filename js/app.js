@@ -54,7 +54,7 @@
     sheetMetal: {
       width: 100,
       height: 50,
-      length: 10,
+      length: 1.2,
       qty: 1,
       wasteRate: 10,
       thicknessMM: 0.8
@@ -118,7 +118,7 @@
   }
 
   /* ==========================================================================
-     TAB 1: 空調負載計算 Controller (In-place DOM updates to keep soft keyboard open)
+     TAB 1: 空調負載計算 Controller
      ========================================================================== */
   function initLoadCalc() {
     const outTempInput = document.getElementById("load-out-temp");
@@ -161,11 +161,9 @@
       });
     }
 
-    // First time DOM build
     buildRoomCardsDOM();
   }
 
-  // Build DOM structure for room cards ONLY when rooms are added/deleted (not on typing)
   function buildRoomCardsDOM() {
     const container = document.getElementById("room-list-container");
     if (!container) return;
@@ -192,21 +190,21 @@
           <div class="form-group">
             <label class="form-label">面積 (m²)</label>
             <div class="input-wrapper">
-              <input type="number" class="form-control has-unit room-input" data-id="${room.id}" data-field="areaM2" value="${room.areaM2}" step="1" inputmode="decimal">
+              <input type="number" class="form-control has-unit room-input" data-id="${room.id}" data-field="areaM2" value="${room.areaM2}" step="any" inputmode="decimal">
               <span class="input-unit room-ping-unit" data-id="${room.id}">m² (${(room.areaM2 / 3.3).toFixed(1)}坪)</span>
             </div>
           </div>
           <div class="form-group">
             <label class="form-label">天花板高度</label>
             <div class="input-wrapper">
-              <input type="number" class="form-control has-unit room-input" data-id="${room.id}" data-field="height" value="${room.height}" step="0.1" inputmode="decimal">
+              <input type="number" class="form-control has-unit room-input" data-id="${room.id}" data-field="height" value="${room.height}" step="any" inputmode="decimal">
               <span class="input-unit">m</span>
             </div>
           </div>
           <div class="form-group">
             <label class="form-label">室內設計溫度</label>
             <div class="input-wrapper">
-              <input type="number" class="form-control has-unit room-input" data-id="${room.id}" data-field="inTemp" value="${room.inTemp}" step="0.5" inputmode="decimal">
+              <input type="number" class="form-control has-unit room-input" data-id="${room.id}" data-field="inTemp" value="${room.inTemp}" step="any" inputmode="decimal">
               <span class="input-unit">°C</span>
             </div>
           </div>
@@ -220,7 +218,7 @@
           <div class="form-group">
             <label class="form-label">外氣風量 (CMH)</label>
             <div class="input-wrapper">
-              <input type="number" class="form-control has-unit room-input" data-id="${room.id}" data-field="freshAirCMH" value="${room.freshAirCMH}" step="10" inputmode="decimal">
+              <input type="number" class="form-control has-unit room-input" data-id="${room.id}" data-field="freshAirCMH" value="${room.freshAirCMH}" step="any" inputmode="decimal">
               <span class="input-unit">CMH</span>
             </div>
           </div>
@@ -249,7 +247,6 @@
       container.appendChild(roomCard);
     });
 
-    // Attach listener for input events (WITHOUT destroying DOM)
     document.querySelectorAll(".room-input").forEach((input) => {
       input.addEventListener("input", (e) => {
         const roomId = e.target.getAttribute("data-id");
@@ -264,13 +261,11 @@
           } else {
             targetRoom[field] = parseFloat(e.target.value) || 0;
           }
-          // Update calculations in-place without destroying DOM
           updateSingleRoomResult(roomId);
         }
       });
     });
 
-    // Attach listener for delete buttons
     document.querySelectorAll(".btn-delete-room").forEach((btn) => {
       btn.addEventListener("click", (e) => {
         const roomId = e.target.getAttribute("data-id");
@@ -282,7 +277,6 @@
     updateAllRoomResults();
   }
 
-  // Update values in-place (preserves focus and soft keyboard state)
   function updateSingleRoomResult(roomId) {
     const room = state.loadCalc.rooms.find((r) => r.id === roomId);
     if (!room) return;
@@ -451,6 +445,7 @@
     const qtyInput = document.getElementById("sheet-qty");
     const wasteInput = document.getElementById("sheet-waste");
     const thicknessSelect = document.getElementById("sheet-thickness");
+    const quickLenBtns = document.querySelectorAll(".btn-quick-len");
 
     if (thicknessSelect) {
       thicknessSelect.innerHTML = "";
@@ -498,6 +493,17 @@
 
     [widthInput, heightInput, lengthInput, qtyInput, wasteInput, thicknessSelect].forEach((el) => {
       if (el) el.addEventListener("input", updateSheetCalc);
+    });
+
+    // Quick length preset buttons (1.2m, 2.4m, 3.6m, 6.0m)
+    quickLenBtns.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const val = btn.getAttribute("data-len");
+        if (lengthInput) {
+          lengthInput.value = val;
+          updateSheetCalc();
+        }
+      });
     });
 
     updateSheetCalc();
