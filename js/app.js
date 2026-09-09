@@ -1250,6 +1250,11 @@
     const length = lengthInput ? (parseFloat(lengthInput.value) || 1) : state.splitACSizer.length;
     const width = widthInput ? (parseFloat(widthInput.value) || 1) : state.splitACSizer.width;
 
+    const pingHint = document.getElementById("split-ping-unit-hint");
+    if (pingHint) {
+      pingHint.innerText = `坪 (約 ${(ping / 0.3025).toFixed(1)} m²)`;
+    }
+
     let effectivePing = ping;
     if (state.splitACSizer.areaMode === "dimension") {
       const areaM2 = length * width;

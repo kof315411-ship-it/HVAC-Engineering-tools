@@ -235,29 +235,40 @@
 
   // 空間類型基準熱負荷 (kcal/h.坪)
   const ROOM_BASE_RATES = {
-    bedroom: { name: "🛏️ 一般臥室 / 書房", rate: 450, desc: "安靜舒適環境，一般居住睡眠空間" },
-    living: { name: "🛋️ 客廳 / 餐廳", rate: 500, desc: "家庭日常活動與用餐空間" },
-    kitchen: { name: "🍳 開放式廚房 / 餐廳", rate: 550, desc: "含烹飪發熱與油煙氣流互動空間" },
-    office: { name: "🏢 辦公室 / 商業空間", rate: 650, desc: "多人電腦作業與事務設備發熱" },
-    store: { name: "🏪 營業門市 / 餐廳", rate: 750, desc: "人員頻繁進出與高密度設備發熱" }
+    bedroom: { name: "🛏️ 一般臥室 / 客房", rate: 450, baseRate: 450, desc: "安靜舒適環境，一般居住睡眠空間" },
+    living: { name: "🛋️ 客廳 / 餐廳 / 開放家庭室", rate: 500, baseRate: 500, desc: "家庭日常活動與用餐空間" },
+    kitchen: { name: "🍳 廚房 / 餐廳開放區", rate: 550, baseRate: 550, desc: "含烹飪發熱與油煙氣流互動空間" },
+    office: { name: "🏢 辦公室 / 書房 / 多人工作室", rate: 650, baseRate: 650, desc: "多人電腦作業與事務設備發熱" },
+    commercial: { name: "🏪 商業門市 / 營業店面 / 餐廳", rate: 750, baseRate: 750, desc: "人員頻繁進出與高密度設備發熱" },
+    store: { name: "🏪 商業門市 / 營業店面 / 餐廳", rate: 750, baseRate: 750, desc: "人員頻繁進出與高密度設備發熱" }
   };
 
   /**
    * 計算空間所需冷房能力
-   * @param {Object} params
-   * @param {string} params.roomType - 空間類型 ("bedroom", "living", "kitchen", "office", "store")
-   * @param {number} params.areaPing - 空間坪數 (坪)
-   * @param {number} params.heightM - 天花板高度 (m)
-   * @param {Array<string>} params.factors - 特殊熱源環境 (["topFloor", "westSun", "glassWindow", "crowded", "devices", "ironRoof"])
+   * 支援兩種傳參方式：
+   * 1. calcCoolingDemand(roomType, areaPing, heightM, envFactors)
+   * 2. calcCoolingDemand({ roomType, areaPing, heightM, factors / envFactors })
    */
-  function calcCoolingDemand(params) {
-    const roomType = params.roomType || "bedroom";
-    const areaPing = Math.max(0.5, parseFloat(params.areaPing) || 4);
-    const heightM = Math.max(2.0, parseFloat(params.heightM) || 2.8);
-    const factors = Array.isArray(params.factors) ? params.factors : [];
+  function calcCoolingDemand(arg1, arg2, arg3, arg4) {
+    let roomType = "bedroom";
+    let areaPing = 5;
+    let heightM = 2.8;
+    let envObjOrArray = null;
+
+    if (typeof arg1 === "object" && arg1 !== null) {
+      roomType = arg1.roomType || "bedroom";
+      areaPing = parseFloat(arg1.areaPing || arg1.ping) || 5;
+      heightM = parseFloat(arg1.heightM || arg1.height) || 2.8;
+      envObjOrArray = arg1.envFactors || arg1.factors || arg1;
+    } else {
+      roomType = arg1 || "bedroom";
+      areaPing = parseFloat(arg2) || 5;
+      heightM = parseFloat(arg3) || 2.8;
+      envObjOrArray = arg4;
+    }
 
     const roomInfo = ROOM_BASE_RATES[roomType] || ROOM_BASE_RATES.bedroom;
-    let baseRate = roomInfo.rate;
+    const baseRate = roomInfo.rate || roomInfo.baseRate || 450;
 
     // 挑高加成係數
     let heightFactor = 0.0;
@@ -271,12 +282,21 @@
 
     // 環境熱源加成係數
     let envFactor = 0.0;
-    if (factors.includes("topFloor")) envFactor += 0.20; // 頂樓 (+20%)
-    if (factors.includes("westSun")) envFactor += 0.20;  // 西曬 (+20%)
-    if (factors.includes("glassWindow")) envFactor += 0.15; // 大面積玻璃 (+15%)
-    if (factors.includes("crowded")) envFactor += 0.10; // 常態多人 (+10%)
-    if (factors.includes("devices")) envFactor += 0.10; // 電器多 (+10%)
-    if (factors.includes("ironRoof")) envFactor += 0.35; // 鐵皮屋 (+35%)
+    if (Array.isArray(envObjOrArray)) {
+      if (envObjOrArray.includes("topFloor") || envObjOrArray.includes("envTopFloor")) envFactor += 0.20;
+      if (envObjOrArray.includes("westSun") || envObjOrArray.includes("envWestSun")) envFactor += 0.20;
+      if (envObjOrArray.includes("glassWindow") || envObjOrArray.includes("glass") || envObjOrArray.includes("envGlass")) envFactor += 0.15;
+      if (envObjOrArray.includes("crowded") || envObjOrArray.includes("people") || envObjOrArray.includes("envPeople")) envFactor += 0.10;
+      if (envObjOrArray.includes("devices") || envObjOrArray.includes("equip") || envObjOrArray.includes("envEquip")) envFactor += 0.10;
+      if (envObjOrArray.includes("ironRoof") || envObjOrArray.includes("envIronRoof")) envFactor += 0.35;
+    } else if (typeof envObjOrArray === "object" && envObjOrArray !== null) {
+      if (envObjOrArray.topFloor || envObjOrArray.envTopFloor) envFactor += 0.20;
+      if (envObjOrArray.westSun || envObjOrArray.envWestSun) envFactor += 0.20;
+      if (envObjOrArray.glass || envObjOrArray.glassWindow || envObjOrArray.envGlass) envFactor += 0.15;
+      if (envObjOrArray.people || envObjOrArray.crowded || envObjOrArray.envPeople) envFactor += 0.10;
+      if (envObjOrArray.equip || envObjOrArray.devices || envObjOrArray.envEquip) envFactor += 0.10;
+      if (envObjOrArray.ironRoof || envObjOrArray.envIronRoof) envFactor += 0.35;
+    }
 
     const totalFactor = 1.0 + heightFactor + envFactor;
     const actualRatePerPing = baseRate * totalFactor;
@@ -308,16 +328,16 @@
     return {
       roomType: roomType,
       roomInfo: roomInfo,
-      areaPing: areaPing,
-      heightM: heightM,
+      areaPing: Number(areaPing.toFixed(2)),
+      heightM: Number(heightM.toFixed(2)),
       heightFactorPercent: Math.round(heightFactor * 100),
       envFactorPercent: Math.round(envFactor * 100),
       totalFactorPercent: Math.round((totalFactor - 1.0) * 100),
       actualRatePerPing: Math.round(actualRatePerPing),
       totalKcal: Math.round(totalKcal),
-      exactKW: exactKW,
+      exactKW: Number(exactKW.toFixed(2)),
       totalBTU: Math.round(totalBTU),
-      totalRT: totalRT,
+      totalRT: Number(totalRT.toFixed(2)),
       recommendedKW: recommendedKW
     };
   }
