@@ -2,13 +2,15 @@
 <html lang="zh-TW">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>HVAC 空調工程小工具 - 離線計算器</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>HVAC 空調工程小工具 - 手機離線計算器</title>
   <link rel="stylesheet" href="css/style.css">
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#0284c7">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="空調工程">
+  <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230284c7'/><text x='50' y='65' font-size='50' text-anchor='middle' fill='white'>❄️</text></svg>">
 </head>
 <body>
   <!-- Header -->
@@ -42,14 +44,14 @@
           <div class="form-group">
             <label class="form-label">外氣乾球溫度</label>
             <div class="input-wrapper">
-              <input type="number" id="load-out-temp" class="form-control has-unit" value="33" step="0.5">
+              <input type="number" id="load-out-temp" class="form-control has-unit" value="33" step="0.5" inputmode="decimal">
               <span class="input-unit">°Cdb</span>
             </div>
           </div>
           <div class="form-group">
             <label class="form-label">外氣相對濕度</label>
             <div class="input-wrapper">
-              <input type="number" id="load-out-rh" class="form-control has-unit" value="75" step="1">
+              <input type="number" id="load-out-rh" class="form-control has-unit" value="75" step="1" inputmode="decimal">
               <span class="input-unit">%RH</span>
             </div>
           </div>
@@ -98,28 +100,28 @@
           <div class="form-group">
             <label class="form-label">風量 (Q)</label>
             <div class="input-wrapper">
-              <input type="number" id="duct-flow" class="form-control has-unit" value="5000" step="100">
+              <input type="number" id="duct-flow" class="form-control has-unit" value="5000" step="100" inputmode="decimal">
               <span class="input-unit">CMH</span>
             </div>
           </div>
           <div class="form-group">
             <label class="form-label">風管寬度 (W)</label>
             <div class="input-wrapper">
-              <input type="number" id="duct-width" class="form-control has-unit" value="950" step="50">
+              <input type="number" id="duct-width" class="form-control has-unit" value="950" step="50" inputmode="decimal">
               <span class="input-unit">mm</span>
             </div>
           </div>
           <div class="form-group">
             <label class="form-label">風管高度 (H)</label>
             <div class="input-wrapper">
-              <input type="number" id="duct-height" class="form-control has-unit" value="400" step="50">
+              <input type="number" id="duct-height" class="form-control has-unit" value="400" step="50" inputmode="decimal">
               <span class="input-unit">mm</span>
             </div>
           </div>
           <div class="form-group">
             <label class="form-label">直線管長 (L)</label>
             <div class="input-wrapper">
-              <input type="number" id="duct-length" class="form-control has-unit" value="10" step="1">
+              <input type="number" id="duct-length" class="form-control has-unit" value="10" step="1" inputmode="decimal">
               <span class="input-unit">m</span>
             </div>
           </div>
@@ -132,7 +134,7 @@
           <div class="form-group">
             <label class="form-label">配件數量</label>
             <div class="input-wrapper">
-              <input type="number" id="duct-fitting-qty" class="form-control has-unit" value="1" min="1" step="1">
+              <input type="number" id="duct-fitting-qty" class="form-control has-unit" value="1" min="1" step="1" inputmode="numeric">
               <span class="input-unit">個</span>
             </div>
           </div>
@@ -165,7 +167,7 @@
         </div>
 
         <div style="margin-top: 16px;">
-          <button class="btn btn-primary" id="btn-add-duct-segment">+ 將此段加入系統壓損清單</button>
+          <button class="btn btn-primary" id="btn-add-duct-segment" style="width: 100%;">+ 將此段加入系統壓損清單</button>
         </div>
 
         <div class="table-responsive">
@@ -198,35 +200,35 @@
           <div class="form-group">
             <label class="form-label">風管寬度 (W)</label>
             <div class="input-wrapper">
-              <input type="number" id="sheet-width" class="form-control has-unit" value="100" step="5">
+              <input type="number" id="sheet-width" class="form-control has-unit" value="100" step="5" inputmode="decimal">
               <span class="input-unit">cm</span>
             </div>
           </div>
           <div class="form-group">
             <label class="form-label">風管高度 (H)</label>
             <div class="input-wrapper">
-              <input type="number" id="sheet-height" class="form-control has-unit" value="50" step="5">
+              <input type="number" id="sheet-height" class="form-control has-unit" value="50" step="5" inputmode="decimal">
               <span class="input-unit">cm</span>
             </div>
           </div>
           <div class="form-group">
             <label class="form-label">風管長度 (L)</label>
             <div class="input-wrapper">
-              <input type="number" id="sheet-length" class="form-control has-unit" value="10" step="1">
+              <input type="number" id="sheet-length" class="form-control has-unit" value="10" step="1" inputmode="decimal">
               <span class="input-unit">m</span>
             </div>
           </div>
           <div class="form-group">
             <label class="form-label">風管支數 (Quantity)</label>
             <div class="input-wrapper">
-              <input type="number" id="sheet-qty" class="form-control has-unit" value="1" min="1">
+              <input type="number" id="sheet-qty" class="form-control has-unit" value="1" min="1" inputmode="numeric">
               <span class="input-unit">支</span>
             </div>
           </div>
           <div class="form-group">
             <label class="form-label">預估裁切損耗率 (%)</label>
             <div class="input-wrapper">
-              <input type="number" id="sheet-waste" class="form-control has-unit" value="10" step="1">
+              <input type="number" id="sheet-waste" class="form-control has-unit" value="10" step="1" inputmode="decimal">
               <span class="input-unit">%</span>
             </div>
           </div>
@@ -292,14 +294,14 @@
           <div class="form-group">
             <label class="form-label">輸入冷凍噸數 (RT)</label>
             <div class="input-wrapper">
-              <input type="number" id="pipe-input-rt" class="form-control has-unit" placeholder="例如: 100" step="1">
+              <input type="number" id="pipe-input-rt" class="form-control has-unit" placeholder="例如: 100" step="1" inputmode="decimal">
               <span class="input-unit">RT</span>
             </div>
           </div>
           <div class="form-group">
             <label class="form-label">或輸入水流量 (LPM)</label>
             <div class="input-wrapper">
-              <input type="number" id="pipe-input-lpm" class="form-control has-unit" placeholder="例如: 1008" step="10">
+              <input type="number" id="pipe-input-lpm" class="form-control has-unit" placeholder="例如: 1008" step="10" inputmode="decimal">
               <span class="input-unit">LPM</span>
             </div>
           </div>
@@ -353,7 +355,6 @@
     </button>
   </div>
 
-  <!-- Standard non-module script loading for direct file:// CORS compatibility -->
   <script src="js/load-calc.js"></script>
   <script src="js/duct-loss.js"></script>
   <script src="js/sheet-metal.js"></script>
