@@ -55,7 +55,6 @@
       width: 100,
       height: 50,
       length: 1.2,
-      qty: 1,
       wasteRate: 10,
       thicknessMM: 0.8
     },
@@ -436,13 +435,13 @@
   }
 
   /* ==========================================================================
-     TAB 3: 鐵皮才數計算 Controller
+     TAB 3: 鐵皮才數計算 Controller (風管支數 N = 長度 M / 1.2 唯讀)
      ========================================================================== */
   function initSheetMetal() {
     const widthInput = document.getElementById("sheet-width");
     const heightInput = document.getElementById("sheet-height");
     const lengthInput = document.getElementById("sheet-length");
-    const qtyInput = document.getElementById("sheet-qty");
+    const qtyInput = document.getElementById("sheet-qty"); // READ-ONLY!
     const wasteInput = document.getElementById("sheet-waste");
     const thicknessSelect = document.getElementById("sheet-thickness");
     const quickLenBtns = document.querySelectorAll(".btn-quick-len");
@@ -462,7 +461,6 @@
       state.sheetMetal.width = parseFloat(widthInput.value) || 0;
       state.sheetMetal.height = parseFloat(heightInput.value) || 0;
       state.sheetMetal.length = parseFloat(lengthInput.value) || 0;
-      state.sheetMetal.qty = parseInt(qtyInput.value) || 1;
       state.sheetMetal.wasteRate = (parseFloat(wasteInput.value) || 0) / 100;
       state.sheetMetal.thicknessMM = parseFloat(thicknessSelect ? thicknessSelect.value : 0.8) || 0.8;
 
@@ -470,10 +468,14 @@
         widthCM: state.sheetMetal.width,
         heightCM: state.sheetMetal.height,
         lengthM: state.sheetMetal.length,
-        qty: state.sheetMetal.qty,
         wasteRate: state.sheetMetal.wasteRate,
         thicknessMM: state.sheetMetal.thicknessMM
       });
+
+      // Update read-only Qty input: N = Length / 1.2
+      if (qtyInput) {
+        qtyInput.value = res.qty.toFixed(2);
+      }
 
       const tsaiEl = document.getElementById("res-sheet-tsai");
       const sheetsEl = document.getElementById("res-sheet-3x7");
@@ -483,7 +485,7 @@
       const clipsEl = document.getElementById("res-sheet-clips");
 
       if (tsaiEl) tsaiEl.innerHTML = `${res.grossTsai.toFixed(1)} <span style="font-size: 20px;">才</span>`;
-      if (sheetsEl) sheetsEl.innerText = `需 3'×7' 鍍鋅鐵皮: ${res.sheets3x7Gross.toFixed(1)} 張 (含 ${res.wasteRatePercent}% 損耗) | 淨展開面積: ${res.netAreaM2.toFixed(1)} m²`;
+      if (sheetsEl) sheetsEl.innerText = `需 3'×7' 鍍鋅鐵皮: ${res.sheets3x7Gross.toFixed(1)} 張 (含 ${res.wasteRatePercent}% 損耗) | M2數 (淨展開面積): ${res.netAreaM2.toFixed(1)} m²`;
 
       if (perimEl) perimEl.innerText = res.perimeterCM;
       if (weightEl) weightEl.innerText = res.weightKgGross.toFixed(1);
@@ -491,11 +493,11 @@
       if (clipsEl) clipsEl.innerText = res.flangeClipsPcs;
     }
 
-    [widthInput, heightInput, lengthInput, qtyInput, wasteInput, thicknessSelect].forEach((el) => {
+    [widthInput, heightInput, lengthInput, wasteInput, thicknessSelect].forEach((el) => {
       if (el) el.addEventListener("input", updateSheetCalc);
     });
 
-    // Quick length preset buttons (1.2m, 2.4m, 3.6m, 6.0m)
+    // Quick length preset buttons (1m, 1.2m, 1.5m)
     quickLenBtns.forEach((btn) => {
       btn.addEventListener("click", () => {
         const val = btn.getAttribute("data-len");

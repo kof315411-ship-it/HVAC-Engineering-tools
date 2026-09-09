@@ -35,7 +35,7 @@
 
     <!-- TAB 1: 空調負載計算 -->
     <section id="tab-load" class="tab-pane active">
-      <!-- Global Ambient Parameters (Inputs) -->
+      <!-- Global Ambient Parameters -->
       <div class="card">
         <div class="card-title">
           <span>外氣與環境預設變數 (可編輯欄位)</span>
@@ -65,7 +65,7 @@
         </div>
       </div>
 
-      <!-- Project Total Result Card (Excel Formula Read-Only) -->
+      <!-- Project Total Result Card -->
       <div class="result-card">
         <div class="result-title">專案全區空調冷負載總計 (含外氣 - 原始Excel帶入公式)</div>
         <div class="result-value" id="load-total-rt">0.00 <span style="font-size: 20px;">RT</span></div>
@@ -217,18 +217,17 @@
               <input type="number" id="sheet-length" class="form-control has-unit" value="1.2" step="any" inputmode="decimal">
               <span class="input-unit">m</span>
             </div>
-            <!-- Quick preset buttons for 1.2m standard section lengths -->
-            <div style="display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap;">
-              <button class="btn btn-outline btn-sm btn-quick-len" data-len="1.2">1.2m(1節)</button>
-              <button class="btn btn-outline btn-sm btn-quick-len" data-len="2.4">2.4m(2節)</button>
-              <button class="btn btn-outline btn-sm btn-quick-len" data-len="3.6">3.6m(3節)</button>
-              <button class="btn btn-outline btn-sm btn-quick-len" data-len="6.0">6.0m(5節)</button>
+            <!-- Quick preset buttons for 1m, 1.2m, 1.5m lengths -->
+            <div style="display: flex; gap: 8px; margin-top: 6px; flex-wrap: wrap;">
+              <button class="btn btn-outline btn-sm btn-quick-len" data-len="1">1米</button>
+              <button class="btn btn-outline btn-sm btn-quick-len" data-len="1.2">1.2米</button>
+              <button class="btn btn-outline btn-sm btn-quick-len" data-len="1.5">1.5米</button>
             </div>
           </div>
           <div class="form-group">
-            <label class="form-label">風管支數 (N)</label>
+            <label class="form-label">風管支數 N (= 米數 / 1.2)</label>
             <div class="input-wrapper">
-              <input type="number" id="sheet-qty" class="form-control has-unit" value="1" min="1" step="any" inputmode="decimal">
+              <input type="text" id="sheet-qty" class="form-control has-unit" readonly style="background-color: #e2e8f0; font-weight: bold;" value="1.0">
               <span class="input-unit">支</span>
             </div>
           </div>
