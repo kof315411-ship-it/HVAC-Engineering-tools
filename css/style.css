@@ -632,6 +632,227 @@ body {
   border-bottom: 2px solid #ea580c;
 }
 
+/* Split AC Sizer Specific Styling */
+.result-card.split-gradient {
+  background: linear-gradient(135deg, #0284c7 0%, #3b82f6 50%, #6366f1 100%);
+}
+
+.heat-source-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.heat-checkbox-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--bg-main);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 14px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.heat-checkbox-item:hover {
+  border-color: #0284c7;
+  background-color: #f0f9ff;
+}
+
+.heat-checkbox-item input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: #0284c7;
+  cursor: pointer;
+}
+
+.heat-check-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+}
+
+.heat-check-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.heat-check-badge {
+  font-size: 11px;
+  font-weight: 700;
+  color: #0284c7;
+}
+
+.heat-check-badge.danger {
+  color: #dc2626;
+}
+
+/* Brand Filter Tags */
+.brand-filter-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.brand-tag-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--bg-main);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 6px 12px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-main);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.brand-tag-label:hover {
+  border-color: #0284c7;
+  background-color: #f0f9ff;
+}
+
+.brand-tag-label.active {
+  background-color: #e0f2fe;
+  border-color: #0284c7;
+  color: #0369a1;
+  font-weight: 700;
+}
+
+.brand-tag-label input[type="checkbox"] {
+  accent-color: #0284c7;
+  width: 14px;
+  height: 14px;
+  margin: 0;
+  cursor: pointer;
+}
+
+/* Brand Model Comparison Cards Grid */
+.brand-models-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+  gap: 14px;
+  margin-top: 12px;
+}
+
+.brand-model-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.brand-model-card:hover {
+  border-color: #0284c7;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.12);
+}
+
+.brand-model-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: var(--card-brand-color, #0284c7);
+}
+
+.brand-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.brand-card-name {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.brand-card-origin {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: #f1f5f9;
+  color: #475569;
+  font-weight: 600;
+}
+
+.brand-model-num {
+  font-size: 13px;
+  font-family: monospace;
+  font-weight: 700;
+  color: #0369a1;
+  background: #f0f9ff;
+  padding: 6px 8px;
+  border-radius: 6px;
+  word-break: break-all;
+}
+
+.brand-card-stats {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  background: var(--bg-main);
+  border-radius: 8px;
+  padding: 8px 10px;
+}
+
+.brand-stat-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.brand-stat-lbl {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.brand-stat-val {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--text-main);
+}
+
+.brand-stat-val.highlight-kw {
+  color: #0284c7;
+}
+
+.brand-model-series {
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748b;
+}
+
+.brand-model-feats {
+  font-size: 12px;
+  color: #334155;
+  line-height: 1.5;
+  border-top: 1px dashed var(--border);
+  padding-top: 8px;
+  margin-top: 2px;
+}
+
 /* Mobile Bottom Navigation Bar */
 .bottom-nav {
   display: none;

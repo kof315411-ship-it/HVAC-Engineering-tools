@@ -36,6 +36,7 @@
       <button class="tab-btn" data-tab="tab-pipe">💧 管徑表速查</button>
       <button class="tab-btn" data-tab="tab-wire">⚡ 電線配管選用</button>
       <button class="tab-btn" data-tab="tab-insulation">🧥 配管保溫選用</button>
+      <button class="tab-btn" data-tab="tab-split">❄️ 分離式試算選機</button>
     </nav>
 
     <!-- TAB 1: 空調負載計算 -->
@@ -573,6 +574,195 @@
         </div>
       </div>
     </section>
+
+    <!-- TAB 7: 分離式試算選機 -->
+    <section id="tab-split" class="tab-pane">
+      <!-- Top Overview / Result Summary Banner -->
+      <div class="result-card split-gradient">
+        <div class="result-title">推薦分離式冷房能力 (標準機種選型)</div>
+        <div class="result-value" id="split-res-kw">0.0 <span style="font-size: 20px;">kW</span></div>
+        <div class="result-sub" id="split-res-sub">計算總需冷量: 0 kcal/h | 0 BTU/h | 0.00 RT</div>
+      </div>
+
+      <!-- Sizing Input Form -->
+      <div class="card">
+        <div class="card-title">
+          <span>空間規格與環境條件設定</span>
+        </div>
+
+        <div class="grid-2">
+          <!-- Room Usage Type -->
+          <div class="form-group">
+            <label class="form-label">空間用途類別 (基準冷度)</label>
+            <select id="split-room-type" class="form-control">
+              <option value="bedroom" selected>一般臥室 / 客房 (450 kcal/h·坪)</option>
+              <option value="living">客廳 / 餐廳 / 開放家庭室 (500 kcal/h·坪)</option>
+              <option value="kitchen">廚房 / 餐廳開放區 (550 kcal/h·坪)</option>
+              <option value="office">辦公室 / 書房 / 多人工作室 (650 kcal/h·坪)</option>
+              <option value="commercial">商業門市 / 營業店面 / 餐廳 (750 kcal/h·坪)</option>
+            </select>
+          </div>
+
+          <!-- Ceiling Height -->
+          <div class="form-group">
+            <label class="form-label">天花板挑高 (高度加成)</label>
+            <div class="input-wrapper">
+              <input type="number" id="split-height" class="form-control has-unit" value="2.8" step="0.1" min="1.5" max="10" inputmode="decimal">
+              <span class="input-unit">公尺 (m)</span>
+            </div>
+            <div class="form-hint" id="split-height-hint">標準樓高 (&le; 2.9m，不加成)</div>
+          </div>
+        </div>
+
+        <!-- Dimension / Area Mode Toggle -->
+        <div class="form-group" style="margin-top: 12px;">
+          <label class="form-label">空間大小輸入方式</label>
+          <div class="fluid-btn-group" id="split-area-mode-group">
+            <button type="button" class="fluid-btn active" data-mode="ping">📏 直接輸入坪數</button>
+            <button type="button" class="fluid-btn" data-mode="dimension">📐 輸入長寬尺寸 (公尺)</button>
+          </div>
+        </div>
+
+        <!-- Direct Ping Input -->
+        <div id="split-ping-container" class="form-group">
+          <label class="form-label">房間坪數 (坪)</label>
+          <div class="input-wrapper">
+            <input type="number" id="split-input-ping" class="form-control has-unit" value="5" step="0.5" min="1" max="100" inputmode="decimal">
+            <span class="input-unit">坪 (約 16.5 m²)</span>
+          </div>
+        </div>
+
+        <!-- Length x Width Input -->
+        <div id="split-dim-container" class="grid-2" style="display: none;">
+          <div class="form-group">
+            <label class="form-label">房間長度 (L)</label>
+            <div class="input-wrapper">
+              <input type="number" id="split-input-length" class="form-control has-unit" value="4.5" step="0.1" min="0.5" inputmode="decimal">
+              <span class="input-unit">公尺 (m)</span>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">房間寬度 (W)</label>
+            <div class="input-wrapper">
+              <input type="number" id="split-input-width" class="form-control has-unit" value="3.6" step="0.1" min="0.5" inputmode="decimal">
+              <span class="input-unit">公尺 (m)</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Environmental & Heat Load Conditions -->
+        <div class="form-group" style="margin-top: 16px;">
+          <label class="form-label">特殊環境與熱源條件加成 (可複選)</label>
+          <div class="heat-source-grid">
+            <label class="heat-checkbox-item">
+              <input type="checkbox" id="split-env-topfloor" value="0.20">
+              <div class="heat-check-content">
+                <span class="heat-check-title">頂樓 / 日曬頂層</span>
+                <span class="heat-check-badge">+20% 負載</span>
+              </div>
+            </label>
+            <label class="heat-checkbox-item">
+              <input type="checkbox" id="split-env-westsun" value="0.20">
+              <div class="heat-check-content">
+                <span class="heat-check-title">西曬嚴重</span>
+                <span class="heat-check-badge">+20% 負載</span>
+              </div>
+            </label>
+            <label class="heat-checkbox-item">
+              <input type="checkbox" id="split-env-glass" value="0.15">
+              <div class="heat-check-content">
+                <span class="heat-check-title">大面積玻璃窗 / 落地窗</span>
+                <span class="heat-check-badge">+15% 負載</span>
+              </div>
+            </label>
+            <label class="heat-checkbox-item">
+              <input type="checkbox" id="split-env-people" value="0.10">
+              <div class="heat-check-content">
+                <span class="heat-check-title">常態人數眾多 (&gt;5人)</span>
+                <span class="heat-check-badge">+10% 負載</span>
+              </div>
+            </label>
+            <label class="heat-checkbox-item">
+              <input type="checkbox" id="split-env-equipment" value="0.10">
+              <div class="heat-check-content">
+                <span class="heat-check-title">高發熱電器 / 伺服電腦</span>
+                <span class="heat-check-badge">+10% 負載</span>
+              </div>
+            </label>
+            <label class="heat-checkbox-item">
+              <input type="checkbox" id="split-env-ironroof" value="0.35">
+              <div class="heat-check-content">
+                <span class="heat-check-title">鐵皮屋 / 頂加鐵皮</span>
+                <span class="heat-check-badge danger">+35% 負載</span>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <!-- Sizing Analysis Detail Box -->
+        <div class="info-box" style="margin-top: 14px;">
+          <div class="info-title">📊 負載試算分析結果</div>
+          <div id="split-calc-details" class="info-content" style="font-size: 13px; line-height: 1.6;">
+            <!-- Dynamic analysis summary -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Brand Filter Section -->
+      <div class="card">
+        <div class="card-title">
+          <span>廠牌篩選 (勾選納入比較的品牌，未勾選不列入)</span>
+          <div class="card-actions">
+            <button class="btn btn-secondary btn-xs" id="split-btn-select-all">全選 (19廠牌)</button>
+            <button class="btn btn-secondary btn-xs" id="split-btn-select-none">清除全部</button>
+            <button class="btn btn-secondary btn-xs" id="split-btn-select-tier1">日系一線</button>
+            <button class="btn btn-secondary btn-xs" id="split-btn-select-tw">台灣品牌</button>
+          </div>
+        </div>
+
+        <div class="brand-filter-grid" id="split-brand-filters">
+          <!-- Dynamic brand checkboxes -->
+        </div>
+      </div>
+
+      <!-- Matched Brand Models Comparison Grid -->
+      <div class="card">
+        <div class="card-title">
+          <span>各廠牌能力相近機種推薦比較</span>
+          <span class="badge" id="split-match-count">共 19 廠牌</span>
+        </div>
+
+        <div class="brand-models-grid" id="split-models-grid">
+          <!-- Dynamic matched brand cards -->
+        </div>
+      </div>
+
+      <!-- Full Comparison Table -->
+      <div class="card">
+        <div class="card-title">
+          <span>各大品牌規格橫向對照總表</span>
+        </div>
+        <div class="table-responsive">
+          <table class="custom-table" id="split-models-table">
+            <thead>
+              <tr>
+                <th>品牌廠牌</th>
+                <th>系列定位</th>
+                <th>室內 / 室外機型號</th>
+                <th>冷房能力 (kW)</th>
+                <th>冷氣能力 (BTU)</th>
+                <th>CSPF 能效</th>
+                <th>適用坪數</th>
+                <th>核心特色與技術亮點</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Dynamic table rows -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
   </main>
 
   <!-- Mobile Bottom Navigation -->
@@ -601,6 +791,10 @@
       <span class="bottom-nav-icon">🧥</span>
       <span>配管保溫</span>
     </button>
+    <button class="bottom-nav-item" data-tab="tab-split">
+      <span class="bottom-nav-icon">❄️</span>
+      <span>分離選機</span>
+    </button>
   </div>
 
   <script src="js/load-calc.js"></script>
@@ -609,6 +803,7 @@
   <script src="js/pipe-sizer.js"></script>
   <script src="js/wire-sizer.js"></script>
   <script src="js/insulation-sizer.js"></script>
+  <script src="js/split-ac-sizer.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>

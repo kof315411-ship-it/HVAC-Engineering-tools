@@ -72,6 +72,25 @@
       sysType: "chilled",
       material: "phenolic",
       sizeA: 50
+    },
+    splitACSizer: {
+      roomType: "bedroom",
+      height: 2.8,
+      areaMode: "ping",
+      ping: 5,
+      length: 4.5,
+      width: 3.6,
+      envTopFloor: false,
+      envWestSun: false,
+      envGlass: false,
+      envPeople: false,
+      envEquip: false,
+      envIronRoof: false,
+      selectedBrands: [
+        "hitachi", "panasonic", "daikin", "mhi", "fujitsu", "lg",
+        "gree", "bd", "hawrin", "heran", "teco", "sampo",
+        "maxe", "sanlux", "chimei", "renfoss", "kolin", "appleton", "songlinxia"
+      ]
     }
   };
 
@@ -84,6 +103,7 @@
     initPipeSizer();
     initWireSizer();
     initInsulationSizer();
+    initSplitACSizer();
     registerServiceWorker();
   });
 
@@ -963,6 +983,371 @@
       tbody.appendChild(tr);
     });
   }
+
+  // ==========================================
+  // MODULE 7: 分離式試算選機 (Split AC Sizer & Model Selection)
+  // ==========================================
+  function initSplitACSizer() {
+    if (!window.HVACSplitACSizer) return;
+
+    const roomTypeSelect = document.getElementById("split-room-type");
+    const heightInput = document.getElementById("split-height");
+    const heightHint = document.getElementById("split-height-hint");
+    const pingInput = document.getElementById("split-input-ping");
+    const lengthInput = document.getElementById("split-input-length");
+    const widthInput = document.getElementById("split-input-width");
+    const modeButtons = document.querySelectorAll("#split-area-mode-group .fluid-btn");
+    const pingContainer = document.getElementById("split-ping-container");
+    const dimContainer = document.getElementById("split-dim-container");
+
+    const envCheckboxes = {
+      topFloor: document.getElementById("split-env-topfloor"),
+      westSun: document.getElementById("split-env-westsun"),
+      glass: document.getElementById("split-env-glass"),
+      people: document.getElementById("split-env-people"),
+      equip: document.getElementById("split-env-equipment"),
+      ironRoof: document.getElementById("split-env-ironroof")
+    };
+
+    // Mode Toggle (Ping vs Dimensions)
+    modeButtons.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        modeButtons.forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        const mode = btn.dataset.mode;
+        state.splitACSizer.areaMode = mode;
+
+        if (mode === "ping") {
+          if (pingContainer) pingContainer.style.display = "block";
+          if (dimContainer) dimContainer.style.display = "none";
+        } else {
+          if (pingContainer) pingContainer.style.display = "none";
+          if (dimContainer) dimContainer.style.display = "grid";
+        }
+        updateSplitACCalculation();
+      });
+    });
+
+    // Room Type Change
+    if (roomTypeSelect) {
+      roomTypeSelect.addEventListener("change", (e) => {
+        state.splitACSizer.roomType = e.target.value;
+        updateSplitACCalculation();
+      });
+    }
+
+    // Height Change
+    if (heightInput) {
+      heightInput.addEventListener("input", (e) => {
+        const val = parseFloat(e.target.value) || 2.8;
+        state.splitACSizer.height = val;
+        if (heightHint) {
+          if (val <= 2.9) {
+            heightHint.innerText = `標準樓高 (${val}m，不加成)`;
+          } else if (val <= 3.5) {
+            heightHint.innerText = `輕度挑高 (${val}m，負載 +10%)`;
+          } else if (val <= 4.2) {
+            heightHint.innerText = `中度挑高 (${val}m，負載 +20%)`;
+          } else {
+            heightHint.innerText = `超高挑高/複層 (${val}m，負載 +35%)`;
+          }
+        }
+        updateSplitACCalculation();
+      });
+    }
+
+    // Ping Input
+    if (pingInput) {
+      pingInput.addEventListener("input", (e) => {
+        state.splitACSizer.ping = parseFloat(e.target.value) || 1;
+        updateSplitACCalculation();
+      });
+    }
+
+    // Dimension Inputs
+    if (lengthInput) {
+      lengthInput.addEventListener("input", (e) => {
+        state.splitACSizer.length = parseFloat(e.target.value) || 1;
+        updateSplitACCalculation();
+      });
+    }
+    if (widthInput) {
+      widthInput.addEventListener("input", (e) => {
+        state.splitACSizer.width = parseFloat(e.target.value) || 1;
+        updateSplitACCalculation();
+      });
+    }
+
+    // Heat Source Checkboxes
+    Object.keys(envCheckboxes).forEach((k) => {
+      const el = envCheckboxes[k];
+      if (el) {
+        el.addEventListener("change", (e) => {
+          if (k === "topFloor") state.splitACSizer.envTopFloor = e.target.checked;
+          if (k === "westSun") state.splitACSizer.envWestSun = e.target.checked;
+          if (k === "glass") state.splitACSizer.envGlass = e.target.checked;
+          if (k === "people") state.splitACSizer.envPeople = e.target.checked;
+          if (k === "equip") state.splitACSizer.envEquip = e.target.checked;
+          if (k === "ironRoof") state.splitACSizer.envIronRoof = e.target.checked;
+          updateSplitACCalculation();
+        });
+      }
+    });
+
+    // Brand Quick Filter Actions
+    const btnAll = document.getElementById("split-btn-select-all");
+    const btnNone = document.getElementById("split-btn-select-none");
+    const btnTier1 = document.getElementById("split-btn-select-tier1");
+    const btnTw = document.getElementById("split-btn-select-tw");
+
+    if (btnAll) {
+      btnAll.addEventListener("click", () => {
+        state.splitACSizer.selectedBrands = HVACSplitACSizer.BRANDS.map((b) => b.id);
+        renderBrandFilterCheckboxes();
+        updateSplitACCalculation();
+      });
+    }
+
+    if (btnNone) {
+      btnNone.addEventListener("click", () => {
+        state.splitACSizer.selectedBrands = [];
+        renderBrandFilterCheckboxes();
+        updateSplitACCalculation();
+      });
+    }
+
+    if (btnTier1) {
+      btnTier1.addEventListener("click", () => {
+        state.splitACSizer.selectedBrands = ["hitachi", "panasonic", "daikin", "mhi", "fujitsu", "lg"];
+        renderBrandFilterCheckboxes();
+        updateSplitACCalculation();
+      });
+    }
+
+    if (btnTw) {
+      btnTw.addEventListener("click", () => {
+        state.splitACSizer.selectedBrands = [
+          "bd", "hawrin", "heran", "teco", "sampo", "maxe",
+          "sanlux", "chimei", "renfoss", "kolin", "appleton", "songlinxia"
+        ];
+        renderBrandFilterCheckboxes();
+        updateSplitACCalculation();
+      });
+    }
+
+    // Initial render of brand filter checkboxes and calculations
+    renderBrandFilterCheckboxes();
+    updateSplitACCalculation();
+  }
+
+  function renderBrandFilterCheckboxes() {
+    const container = document.getElementById("split-brand-filters");
+    if (!container || !window.HVACSplitACSizer) return;
+
+    container.innerHTML = "";
+    const brands = HVACSplitACSizer.BRANDS;
+    const selected = state.splitACSizer.selectedBrands;
+
+    brands.forEach((brand) => {
+      const isChecked = selected.includes(brand.id);
+      const label = document.createElement("label");
+      label.className = `brand-tag-label ${isChecked ? "active" : ""}`;
+      label.innerHTML = `
+        <input type="checkbox" value="${brand.id}" ${isChecked ? "checked" : ""}>
+        <span>${brand.name}</span>
+      `;
+
+      const chk = label.querySelector("input");
+      chk.addEventListener("change", (e) => {
+        if (e.target.checked) {
+          if (!state.splitACSizer.selectedBrands.includes(brand.id)) {
+            state.splitACSizer.selectedBrands.push(brand.id);
+          }
+          label.classList.add("active");
+        } else {
+          state.splitACSizer.selectedBrands = state.splitACSizer.selectedBrands.filter((id) => id !== brand.id);
+          label.classList.remove("active");
+        }
+        updateSplitACCalculation();
+      });
+
+      container.appendChild(label);
+    });
+  }
+
+  function updateSplitACCalculation() {
+    if (!window.HVACSplitACSizer) return;
+
+    const s = state.splitACSizer;
+    let effectivePing = s.ping;
+
+    if (s.areaMode === "dimension") {
+      const areaM2 = s.length * s.width;
+      effectivePing = areaM2 * 0.3025;
+    }
+
+    const envFactors = {
+      topFloor: s.envTopFloor,
+      westSun: s.envWestSun,
+      glass: s.envGlass,
+      people: s.envPeople,
+      equip: s.envEquip,
+      ironRoof: s.envIronRoof
+    };
+
+    // Calculate sizing demand
+    const calcResult = HVACSplitACSizer.calcCoolingDemand(
+      s.roomType,
+      effectivePing,
+      s.height,
+      envFactors
+    );
+
+    // Update Result Banner
+    const kwEl = document.getElementById("split-res-kw");
+    const subEl = document.getElementById("split-res-sub");
+    if (kwEl) {
+      kwEl.innerHTML = `${calcResult.recommendedKW.toFixed(1)} <span style="font-size: 20px;">kW</span> <span style="font-size: 14px; opacity: 0.9; font-weight: normal;">(精確需求 ${calcResult.exactKW} kW)</span>`;
+    }
+    if (subEl) {
+      subEl.innerHTML = `總需冷量: <strong>${calcResult.totalKcal.toLocaleString()}</strong> kcal/h | <strong>${calcResult.totalBTU.toLocaleString()}</strong> BTU/h | <strong>${calcResult.totalRT}</strong> RT`;
+    }
+
+    // Update Calculation Details Summary Box
+    const detailEl = document.getElementById("split-calc-details");
+    if (detailEl) {
+      const factorList = [];
+      if (calcResult.heightFactorPercent > 0) factorList.push(`樓高挑高 +${calcResult.heightFactorPercent}%`);
+      if (s.envTopFloor) factorList.push("頂樓日曬 +20%");
+      if (s.envWestSun) factorList.push("西曬嚴重 +20%");
+      if (s.envGlass) factorList.push("落地大窗 +15%");
+      if (s.envPeople) factorList.push("人數眾多 +10%");
+      if (s.envEquip) factorList.push("高熱電器 +10%");
+      if (s.envIronRoof) factorList.push("鐵皮屋 +35%");
+
+      const factorText = factorList.length > 0 ? factorList.join("、") : "無特殊熱源加成 (標準工況)";
+
+      detailEl.innerHTML = `
+        <div>📌 <strong>空間規格:</strong> ${calcResult.roomInfo.name} | 計算坪數: <strong>${calcResult.areaPing} 坪</strong> (約 ${(calcResult.areaPing / 0.3025).toFixed(1)} m²) | 樓高: ${calcResult.heightM}m</div>
+        <div>🔥 <strong>冷房基準:</strong> 原始基礎 ${calcResult.roomInfo.baseRate} kcal/h·坪 &rarr; 經條件加成後為 <strong style="color: #0284c7;">${calcResult.actualRatePerPing} kcal/h·坪</strong> (總加成 +${calcResult.totalFactorPercent}%)</div>
+        <div>💡 <strong>加成項目:</strong> ${factorText}</div>
+        <div>🎯 <strong>選型建議:</strong> 標準分離式級距建議選配 <strong style="color: #0284c7; font-size: 14px;">${calcResult.recommendedKW} kW</strong> (約 ${(calcResult.recommendedKW * 860).toLocaleString()} kcal/h / ${(calcResult.recommendedKW * 860 * 3.968).toFixed(0)} BTU/h)</div>
+      `;
+    }
+
+    // Match Brand Models
+    const matchedModels = HVACSplitACSizer.matchBrandModels(calcResult.recommendedKW, s.selectedBrands);
+
+    // Update Matched Count
+    const countBadge = document.getElementById("split-match-count");
+    if (countBadge) {
+      countBadge.innerText = `已選 ${matchedModels.length} / ${HVACSplitACSizer.BRANDS.length} 廠牌`;
+    }
+
+    // Render Cards & Table
+    renderSplitACModelsGrid(matchedModels);
+    renderSplitACTable(matchedModels);
+  }
+
+  function renderSplitACModelsGrid(matches) {
+    const grid = document.getElementById("split-models-grid");
+    if (!grid) return;
+
+    grid.innerHTML = "";
+
+    if (matches.length === 0) {
+      grid.innerHTML = `
+        <div style="grid-column: 1 / -1; text-align: center; padding: 30px; color: var(--text-muted);">
+          未勾選任何廠牌，請在上方勾選欲比較的冷氣品牌。
+        </div>
+      `;
+      return;
+    }
+
+    matches.forEach(({ brand, model }) => {
+      const card = document.createElement("div");
+      card.className = "brand-model-card";
+      card.style.setProperty("--card-brand-color", brand.color || "#0284c7");
+
+      card.innerHTML = `
+        <div class="brand-card-top">
+          <div class="brand-card-name">
+            <span>${brand.name}</span>
+          </div>
+          <span class="brand-card-origin">${brand.origin}</span>
+        </div>
+
+        <div class="brand-model-series">
+          <strong>系列:</strong> ${model.series}
+        </div>
+
+        <div class="brand-model-num" title="推薦機種型號">
+          ${model.model}
+        </div>
+
+        <div class="brand-card-stats">
+          <div class="brand-stat-item">
+            <span class="brand-stat-lbl">冷房額定能力</span>
+            <span class="brand-stat-val highlight-kw">${model.kw} kW</span>
+          </div>
+          <div class="brand-stat-item">
+            <span class="brand-stat-lbl">CSPF 能效 / 等級</span>
+            <span class="brand-stat-val" style="color: #059669;">${model.cspf.toFixed(2)} (1級)</span>
+          </div>
+          <div class="brand-stat-item">
+            <span class="brand-stat-lbl">變頻冷房範圍</span>
+            <span class="brand-stat-val">${model.rangeKW} kW</span>
+          </div>
+          <div class="brand-stat-item">
+            <span class="brand-stat-lbl">適用參考坪數</span>
+            <span class="brand-stat-val">${model.ping}</span>
+          </div>
+        </div>
+
+        <div class="brand-model-feats">
+          <strong>✨ 機種亮點:</strong> ${model.features}
+        </div>
+      `;
+
+      grid.appendChild(card);
+    });
+  }
+
+  function renderSplitACTable(matches) {
+    const tbody = document.querySelector("#split-models-table tbody");
+    if (!tbody) return;
+
+    tbody.innerHTML = "";
+
+    if (matches.length === 0) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="8" style="text-align: center; color: var(--text-muted); padding: 20px;">
+            未勾選任何品牌進行比較
+          </td>
+        </tr>
+      `;
+      return;
+    }
+
+    matches.forEach(({ brand, model }) => {
+      const tr = document.createElement("tr");
+
+      tr.innerHTML = `
+        <td><strong style="color: ${brand.color || '#0284c7'};">${brand.name}</strong> <span class="badge" style="font-size: 10px; margin-left: 4px;">${brand.origin}</span></td>
+        <td>${model.series}</td>
+        <td><code style="font-size: 12px; font-weight: bold; color: #0369a1;">${model.model}</code></td>
+        <td><strong style="color: #0284c7;">${model.kw} kW</strong> <small style="color: #64748b;">(${model.rangeKW})</small></td>
+        <td>${model.btu} BTU/h</td>
+        <td><strong style="color: #059669;">${model.cspf.toFixed(2)}</strong></td>
+        <td>${model.ping}</td>
+        <td style="font-size: 12px; max-width: 260px; white-space: normal;">${model.features}</td>
+      `;
+
+      tbody.appendChild(tr);
+    });
+  }
 })();
+
 
 
