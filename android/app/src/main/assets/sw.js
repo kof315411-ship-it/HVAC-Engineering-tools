@@ -1,4 +1,4 @@
-const CACHE_NAME = "hvac-tools-v5";
+const CACHE_NAME = "hvac-tools-v6";
 const ASSETS_TO_CACHE = [
   "./",
   "./index.html",

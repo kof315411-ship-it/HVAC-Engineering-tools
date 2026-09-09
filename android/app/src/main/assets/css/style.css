@@ -58,24 +58,6 @@ body {
   gap: 8px;
 }
 
-.apk-download-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  background-color: var(--primary);
-  color: #ffffff;
-  padding: 6px 12px;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 600;
-  text-decoration: none;
-  transition: background-color 0.2s ease;
-}
-
-.apk-download-btn:hover {
-  background-color: var(--primary-hover);
-}
-
 .brand {
   display: flex;
   align-items: center;
