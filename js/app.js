@@ -118,7 +118,7 @@
   }
 
   /* ==========================================================================
-     TAB 1: 空調負載計算 Controller
+     TAB 1: 空調負載計算 Controller (In-place DOM updates to keep soft keyboard open)
      ========================================================================== */
   function initLoadCalc() {
     const outTempInput = document.getElementById("load-out-temp");
@@ -133,7 +133,7 @@
       const outEnthalpy = window.HVACLoadCalc.calcEnthalpy(state.loadCalc.outTemp, state.loadCalc.outRH);
       if (outEnthalpyInput) outEnthalpyInput.value = outEnthalpy.toFixed(2);
 
-      renderRooms();
+      updateAllRoomResults();
     }
 
     if (outTempInput) outTempInput.addEventListener("input", updateAmbient);
@@ -157,40 +157,31 @@
           equipW: 0,
           freshAirCMH: 70
         });
-        renderRooms();
+        buildRoomCardsDOM();
       });
     }
 
-    updateAmbient();
+    // First time DOM build
+    buildRoomCardsDOM();
   }
 
-  function renderRooms() {
+  // Build DOM structure for room cards ONLY when rooms are added/deleted (not on typing)
+  function buildRoomCardsDOM() {
     const container = document.getElementById("room-list-container");
     if (!container) return;
 
     container.innerHTML = "";
 
-    let totalProjectRT = 0;
-    let totalProjectKcal = 0;
-    let totalWinterRT = 0;
-
     state.loadCalc.rooms.forEach((room, index) => {
-      const res = window.HVACLoadCalc.calcRoomLoad(
-        Object.assign({ outTemp: state.loadCalc.outTemp, outRH: state.loadCalc.outRH }, room)
-      );
-
-      totalProjectRT += res.rtWithFresh;
-      totalProjectKcal += res.totalWithFresh;
-      totalWinterRT += res.winterRT;
-
       const roomCard = document.createElement("div");
-      roomCard.className = "card";
+      roomCard.className = "card room-card";
+      roomCard.setAttribute("data-room-id", room.id);
       roomCard.style.borderLeft = "4px solid var(--primary)";
       roomCard.style.marginBottom = "16px";
 
       roomCard.innerHTML = `
         <div class="card-title">
-          <span>空間 ${index + 1}: ${res.roomName}</span>
+          <span class="room-title-text">空間 ${index + 1}: ${room.roomName}</span>
           <button class="btn btn-danger btn-sm btn-delete-room" data-id="${room.id}">刪除空間</button>
         </div>
         <div class="grid-3" style="margin-bottom: 12px;">
@@ -201,35 +192,35 @@
           <div class="form-group">
             <label class="form-label">面積 (m²)</label>
             <div class="input-wrapper">
-              <input type="number" class="form-control has-unit room-input" data-id="${room.id}" data-field="areaM2" value="${room.areaM2}" step="1">
-              <span class="input-unit">m² (${res.ping.toFixed(1)}坪)</span>
+              <input type="number" class="form-control has-unit room-input" data-id="${room.id}" data-field="areaM2" value="${room.areaM2}" step="1" inputmode="decimal">
+              <span class="input-unit room-ping-unit" data-id="${room.id}">m² (${(room.areaM2 / 3.3).toFixed(1)}坪)</span>
             </div>
           </div>
           <div class="form-group">
             <label class="form-label">天花板高度</label>
             <div class="input-wrapper">
-              <input type="number" class="form-control has-unit room-input" data-id="${room.id}" data-field="height" value="${room.height}" step="0.1">
+              <input type="number" class="form-control has-unit room-input" data-id="${room.id}" data-field="height" value="${room.height}" step="0.1" inputmode="decimal">
               <span class="input-unit">m</span>
             </div>
           </div>
           <div class="form-group">
             <label class="form-label">室內設計溫度</label>
             <div class="input-wrapper">
-              <input type="number" class="form-control has-unit room-input" data-id="${room.id}" data-field="inTemp" value="${room.inTemp}" step="0.5">
+              <input type="number" class="form-control has-unit room-input" data-id="${room.id}" data-field="inTemp" value="${room.inTemp}" step="0.5" inputmode="decimal">
               <span class="input-unit">°C</span>
             </div>
           </div>
           <div class="form-group">
             <label class="form-label">人員數量</label>
             <div class="input-wrapper">
-              <input type="number" class="form-control has-unit room-input" data-id="${room.id}" data-field="people" value="${room.people}" step="1">
+              <input type="number" class="form-control has-unit room-input" data-id="${room.id}" data-field="people" value="${room.people}" step="1" inputmode="numeric">
               <span class="input-unit">人</span>
             </div>
           </div>
           <div class="form-group">
             <label class="form-label">外氣風量 (CMH)</label>
             <div class="input-wrapper">
-              <input type="number" class="form-control has-unit room-input" data-id="${room.id}" data-field="freshAirCMH" value="${room.freshAirCMH}" step="10">
+              <input type="number" class="form-control has-unit room-input" data-id="${room.id}" data-field="freshAirCMH" value="${room.freshAirCMH}" step="10" inputmode="decimal">
               <span class="input-unit">CMH</span>
             </div>
           </div>
@@ -238,19 +229,19 @@
         <div class="grid-4" style="background: var(--bg-main); padding: 12px; border-radius: 8px; border: 1px solid var(--border);">
           <div>
             <div style="font-size: 11px; color: var(--text-muted);">實際空間負載</div>
-            <div style="font-size: 15px; font-weight: 700; color: var(--text-main);">${res.actualBaseRate.toFixed(0)} <span style="font-size: 11px;">Kcal/h.坪</span></div>
+            <div style="font-size: 15px; font-weight: 700; color: var(--text-main);" class="out-base-rate" data-id="${room.id}">0 Kcal/h.坪</div>
           </div>
           <div>
             <div style="font-size: 11px; color: var(--text-muted);">外氣顯/潛熱負載</div>
-            <div style="font-size: 15px; font-weight: 700; color: var(--text-main);">${res.freshAirLoad.toFixed(0)} <span style="font-size: 11px;">Kcal/h</span></div>
+            <div style="font-size: 15px; font-weight: 700; color: var(--text-main);" class="out-fresh-load" data-id="${room.id}">0 Kcal/h</div>
           </div>
           <div>
             <div style="font-size: 11px; color: var(--text-muted);">本區總冷負載 (含外氣)</div>
-            <div style="font-size: 16px; font-weight: 800; color: var(--primary);">${res.rtWithFresh.toFixed(2)} <span style="font-size: 12px;">RT</span></div>
+            <div style="font-size: 16px; font-weight: 800; color: var(--primary);" class="out-rt" data-id="${room.id}">0.00 RT</div>
           </div>
           <div>
             <div style="font-size: 11px; color: var(--text-muted);">冷負荷指標</div>
-            <div style="font-size: 15px; font-weight: 700; color: var(--text-main);">${res.pingPerRTWithFresh.toFixed(2)} <span style="font-size: 11px;">坪/RT</span></div>
+            <div style="font-size: 15px; font-weight: 700; color: var(--text-main);" class="out-index" data-id="${room.id}">0.00 坪/RT</div>
           </div>
         </div>
       `;
@@ -258,6 +249,7 @@
       container.appendChild(roomCard);
     });
 
+    // Attach listener for input events (WITHOUT destroying DOM)
     document.querySelectorAll(".room-input").forEach((input) => {
       input.addEventListener("input", (e) => {
         const roomId = e.target.getAttribute("data-id");
@@ -266,20 +258,71 @@
         if (targetRoom) {
           if (field === "roomName") {
             targetRoom[field] = e.target.value;
+            const titleEl = document.querySelector(`.room-card[data-room-id="${roomId}"] .room-title-text`);
+            const roomIdx = state.loadCalc.rooms.findIndex((r) => r.id === roomId);
+            if (titleEl) titleEl.innerText = `空間 ${roomIdx + 1}: ${e.target.value}`;
           } else {
             targetRoom[field] = parseFloat(e.target.value) || 0;
           }
-          renderRooms();
+          // Update calculations in-place without destroying DOM
+          updateSingleRoomResult(roomId);
         }
       });
     });
 
+    // Attach listener for delete buttons
     document.querySelectorAll(".btn-delete-room").forEach((btn) => {
       btn.addEventListener("click", (e) => {
         const roomId = e.target.getAttribute("data-id");
         state.loadCalc.rooms = state.loadCalc.rooms.filter((r) => r.id !== roomId);
-        renderRooms();
+        buildRoomCardsDOM();
       });
+    });
+
+    updateAllRoomResults();
+  }
+
+  // Update values in-place (preserves focus and soft keyboard state)
+  function updateSingleRoomResult(roomId) {
+    const room = state.loadCalc.rooms.find((r) => r.id === roomId);
+    if (!room) return;
+
+    const res = window.HVACLoadCalc.calcRoomLoad(
+      Object.assign({ outTemp: state.loadCalc.outTemp, outRH: state.loadCalc.outRH }, room)
+    );
+
+    const pingUnit = document.querySelector(`.room-ping-unit[data-id="${roomId}"]`);
+    const baseRateEl = document.querySelector(`.out-base-rate[data-id="${roomId}"]`);
+    const freshLoadEl = document.querySelector(`.out-fresh-load[data-id="${roomId}"]`);
+    const rtEl = document.querySelector(`.out-rt[data-id="${roomId}"]`);
+    const indexEl = document.querySelector(`.out-index[data-id="${roomId}"]`);
+
+    if (pingUnit) pingUnit.innerText = `m² (${res.ping.toFixed(1)}坪)`;
+    if (baseRateEl) baseRateEl.innerHTML = `${res.actualBaseRate.toFixed(0)} <span style="font-size: 11px;">Kcal/h.坪</span>`;
+    if (freshLoadEl) freshLoadEl.innerHTML = `${res.freshAirLoad.toFixed(0)} <span style="font-size: 11px;">Kcal/h</span>`;
+    if (rtEl) rtEl.innerHTML = `${res.rtWithFresh.toFixed(2)} <span style="font-size: 12px;">RT</span>`;
+    if (indexEl) indexEl.innerHTML = `${res.pingPerRTWithFresh.toFixed(2)} <span style="font-size: 11px;">坪/RT</span>`;
+
+    updateProjectTotalSummary();
+  }
+
+  function updateAllRoomResults() {
+    state.loadCalc.rooms.forEach((r) => updateSingleRoomResult(r.id));
+    updateProjectTotalSummary();
+  }
+
+  function updateProjectTotalSummary() {
+    let totalProjectRT = 0;
+    let totalProjectKcal = 0;
+    let totalWinterRT = 0;
+
+    state.loadCalc.rooms.forEach((room) => {
+      const res = window.HVACLoadCalc.calcRoomLoad(
+        Object.assign({ outTemp: state.loadCalc.outTemp, outRH: state.loadCalc.outRH }, room)
+      );
+      totalProjectRT += res.rtWithFresh;
+      totalProjectKcal += res.totalWithFresh;
+      totalWinterRT += res.winterRT;
     });
 
     const rtElem = document.getElementById("load-total-rt");
