@@ -1,0 +1,8 @@
+<resources>
+    <style name="Theme.HVACTools" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="colorPrimary">#0284c7</item>
+        <item name="colorPrimaryVariant">#0369a1</item>
+        <item name="colorOnPrimary">#FFFFFF</item>
+        <item name="android:statusBarColor">#0284c7</item>
+    </style>
+</resources>
