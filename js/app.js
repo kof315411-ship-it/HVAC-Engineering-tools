@@ -470,7 +470,11 @@
         wasteRate: state.sheetMetal.wasteRate
       });
 
-      if (qtyInput) qtyInput.value = res.qty.toFixed(2);
+      if (qtyInput) {
+        qtyInput.value = res.exactQty !== res.qty 
+          ? `${res.qty} (未整除+1)` 
+          : `${res.qty}`;
+      }
       if (thicknessInput) thicknessInput.value = res.gaugeName;
 
       const tsaiEl = document.getElementById("res-sheet-tsai");

@@ -33,8 +33,9 @@ window.HVACSheetMetal = {
     const perimeterCM = (w + h) * 2;
     const perimeterM = perimeterCM / 100.0;
 
-    // Excel Col D (風管支數): = 米數 / 1.2
-    const n = l > 0 ? l / 1.2 : 0;
+    // Excel Col D (風管支數): = 米數 / 1.2 (若無法整除則無條件+1支 Math.ceil)
+    const exactN = l > 0 ? l / 1.2 : 0;
+    const n = Math.ceil(exactN);
 
     // Excel Col G (保溫才數): = (((長CM + 寬CM) * 2 * 米數) / 9.29) * 1.2
     const tsai = l > 0 ? (((w + h) * 2 * l) / 9.29) * 1.2 : 0;
@@ -48,7 +49,7 @@ window.HVACSheetMetal = {
     // Excel Col I (總重量 kg): = (((長CM + 寬CM) * 2 * 7.85) * 米數) / 100
     const weightKg = l > 0 ? (((w + h) * 2 * 7.85 * l) / 100.0) : 0;
 
-    // Excel Col J (L法蘭角 個): = (米數 / 1.2) * 8 = 風管支數 * 8
+    // Excel Col J (L法蘭角 個): = 風管支數 * 8
     const flangeCornersPcs = Math.round(n * 8);
 
     // Excel Col K (法蘭夾片 支): = ((長CM + 寬CM) * 2 / 15) * 風管支數
@@ -62,6 +63,7 @@ window.HVACSheetMetal = {
       heightCM: h,
       lengthM: l,
       qty: n,
+      exactQty: exactN,
       wasteRatePercent: waste * 100,
       thicknessMM: gaugeInfo.mm,
       gaugeName: gaugeInfo.name,
