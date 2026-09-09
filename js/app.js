@@ -999,6 +999,8 @@
     const modeButtons = document.querySelectorAll("#split-area-mode-group .fluid-btn");
     const pingContainer = document.getElementById("split-ping-container");
     const dimContainer = document.getElementById("split-dim-container");
+    const btnCalc = document.getElementById("btn-split-calc");
+    const btnReset = document.getElementById("btn-split-reset");
 
     const envCheckboxes = {
       topFloor: document.getElementById("split-env-topfloor"),
@@ -1008,6 +1010,20 @@
       equip: document.getElementById("split-env-equipment"),
       ironRoof: document.getElementById("split-env-ironroof")
     };
+
+    function updateHeightHint() {
+      if (!heightInput || !heightHint) return;
+      const val = parseFloat(heightInput.value) || 2.8;
+      if (val <= 2.9) {
+        heightHint.innerText = `標準樓高 (${val}m，不加成)`;
+      } else if (val <= 3.5) {
+        heightHint.innerText = `輕度挑高 (${val}m，負載 +10%)`;
+      } else if (val <= 4.2) {
+        heightHint.innerText = `中度挑高 (${val}m，負載 +20%)`;
+      } else {
+        heightHint.innerText = `超高挑高/複層 (${val}m，負載 +35%)`;
+      }
+    }
 
     // Mode Toggle (Ping vs Dimensions)
     modeButtons.forEach((btn) => {
@@ -1030,51 +1046,50 @@
 
     // Room Type Change
     if (roomTypeSelect) {
-      roomTypeSelect.addEventListener("change", (e) => {
-        state.splitACSizer.roomType = e.target.value;
-        updateSplitACCalculation();
+      ["change", "input"].forEach((evt) => {
+        roomTypeSelect.addEventListener(evt, () => {
+          state.splitACSizer.roomType = roomTypeSelect.value;
+          updateSplitACCalculation();
+        });
       });
     }
 
     // Height Change
     if (heightInput) {
-      heightInput.addEventListener("input", (e) => {
-        const val = parseFloat(e.target.value) || 2.8;
-        state.splitACSizer.height = val;
-        if (heightHint) {
-          if (val <= 2.9) {
-            heightHint.innerText = `標準樓高 (${val}m，不加成)`;
-          } else if (val <= 3.5) {
-            heightHint.innerText = `輕度挑高 (${val}m，負載 +10%)`;
-          } else if (val <= 4.2) {
-            heightHint.innerText = `中度挑高 (${val}m，負載 +20%)`;
-          } else {
-            heightHint.innerText = `超高挑高/複層 (${val}m，負載 +35%)`;
-          }
-        }
-        updateSplitACCalculation();
+      ["input", "change", "keyup"].forEach((evt) => {
+        heightInput.addEventListener(evt, () => {
+          updateHeightHint();
+          state.splitACSizer.height = parseFloat(heightInput.value) || 2.8;
+          updateSplitACCalculation();
+        });
       });
     }
 
     // Ping Input
     if (pingInput) {
-      pingInput.addEventListener("input", (e) => {
-        state.splitACSizer.ping = parseFloat(e.target.value) || 1;
-        updateSplitACCalculation();
+      ["input", "change", "keyup", "paste"].forEach((evt) => {
+        pingInput.addEventListener(evt, () => {
+          state.splitACSizer.ping = parseFloat(pingInput.value) || 0;
+          updateSplitACCalculation();
+        });
       });
     }
 
     // Dimension Inputs
     if (lengthInput) {
-      lengthInput.addEventListener("input", (e) => {
-        state.splitACSizer.length = parseFloat(e.target.value) || 1;
-        updateSplitACCalculation();
+      ["input", "change", "keyup", "paste"].forEach((evt) => {
+        lengthInput.addEventListener(evt, () => {
+          state.splitACSizer.length = parseFloat(lengthInput.value) || 0;
+          updateSplitACCalculation();
+        });
       });
     }
     if (widthInput) {
-      widthInput.addEventListener("input", (e) => {
-        state.splitACSizer.width = parseFloat(e.target.value) || 1;
-        updateSplitACCalculation();
+      ["input", "change", "keyup", "paste"].forEach((evt) => {
+        widthInput.addEventListener(evt, () => {
+          state.splitACSizer.width = parseFloat(widthInput.value) || 0;
+          updateSplitACCalculation();
+        });
       });
     }
 
@@ -1082,17 +1097,60 @@
     Object.keys(envCheckboxes).forEach((k) => {
       const el = envCheckboxes[k];
       if (el) {
-        el.addEventListener("change", (e) => {
-          if (k === "topFloor") state.splitACSizer.envTopFloor = e.target.checked;
-          if (k === "westSun") state.splitACSizer.envWestSun = e.target.checked;
-          if (k === "glass") state.splitACSizer.envGlass = e.target.checked;
-          if (k === "people") state.splitACSizer.envPeople = e.target.checked;
-          if (k === "equip") state.splitACSizer.envEquip = e.target.checked;
-          if (k === "ironRoof") state.splitACSizer.envIronRoof = e.target.checked;
-          updateSplitACCalculation();
+        ["change", "click"].forEach((evt) => {
+          el.addEventListener(evt, () => {
+            if (k === "topFloor") state.splitACSizer.envTopFloor = el.checked;
+            if (k === "westSun") state.splitACSizer.envWestSun = el.checked;
+            if (k === "glass") state.splitACSizer.envGlass = el.checked;
+            if (k === "people") state.splitACSizer.envPeople = el.checked;
+            if (k === "equip") state.splitACSizer.envEquip = el.checked;
+            if (k === "ironRoof") state.splitACSizer.envIronRoof = el.checked;
+            updateSplitACCalculation();
+          });
         });
       }
     });
+
+    // Calculate Button Click
+    if (btnCalc) {
+      btnCalc.addEventListener("click", () => {
+        updateSplitACCalculation();
+        const resCard = document.querySelector("#tab-split .result-card");
+        if (resCard) {
+          resCard.scrollIntoView({ behavior: "smooth", block: "nearest" });
+          resCard.style.transition = "transform 0.15s ease";
+          resCard.style.transform = "scale(1.02)";
+          setTimeout(() => {
+            resCard.style.transform = "scale(1)";
+          }, 200);
+        }
+      });
+    }
+
+    // Reset Button Click
+    if (btnReset) {
+      btnReset.addEventListener("click", () => {
+        if (roomTypeSelect) roomTypeSelect.value = "bedroom";
+        if (heightInput) heightInput.value = "2.8";
+        if (pingInput) pingInput.value = "5";
+        if (lengthInput) lengthInput.value = "4.5";
+        if (widthInput) widthInput.value = "3.6";
+        Object.keys(envCheckboxes).forEach((k) => {
+          if (envCheckboxes[k]) envCheckboxes[k].checked = false;
+        });
+
+        // Switch mode back to ping
+        state.splitACSizer.areaMode = "ping";
+        modeButtons.forEach((b) => {
+          b.classList.toggle("active", b.dataset.mode === "ping");
+        });
+        if (pingContainer) pingContainer.style.display = "block";
+        if (dimContainer) dimContainer.style.display = "none";
+
+        updateHeightHint();
+        updateSplitACCalculation();
+      });
+    }
 
     // Brand Quick Filter Actions
     const btnAll = document.getElementById("split-btn-select-all");
@@ -1136,6 +1194,7 @@
     }
 
     // Initial render of brand filter checkboxes and calculations
+    updateHeightHint();
     renderBrandFilterCheckboxes();
     updateSplitACCalculation();
   }
@@ -1178,28 +1237,39 @@
   function updateSplitACCalculation() {
     if (!window.HVACSplitACSizer) return;
 
-    const s = state.splitACSizer;
-    let effectivePing = s.ping;
+    // Direct extraction from DOM elements to guarantee latest state
+    const roomTypeSelect = document.getElementById("split-room-type");
+    const heightInput = document.getElementById("split-height");
+    const pingInput = document.getElementById("split-input-ping");
+    const lengthInput = document.getElementById("split-input-length");
+    const widthInput = document.getElementById("split-input-width");
 
-    if (s.areaMode === "dimension") {
-      const areaM2 = s.length * s.width;
+    const roomType = roomTypeSelect ? roomTypeSelect.value : state.splitACSizer.roomType;
+    const height = heightInput ? (parseFloat(heightInput.value) || 2.8) : state.splitACSizer.height;
+    const ping = pingInput ? (parseFloat(pingInput.value) || 1) : state.splitACSizer.ping;
+    const length = lengthInput ? (parseFloat(lengthInput.value) || 1) : state.splitACSizer.length;
+    const width = widthInput ? (parseFloat(widthInput.value) || 1) : state.splitACSizer.width;
+
+    let effectivePing = ping;
+    if (state.splitACSizer.areaMode === "dimension") {
+      const areaM2 = length * width;
       effectivePing = areaM2 * 0.3025;
     }
 
     const envFactors = {
-      topFloor: s.envTopFloor,
-      westSun: s.envWestSun,
-      glass: s.envGlass,
-      people: s.envPeople,
-      equip: s.envEquip,
-      ironRoof: s.envIronRoof
+      topFloor: document.getElementById("split-env-topfloor") ? document.getElementById("split-env-topfloor").checked : state.splitACSizer.envTopFloor,
+      westSun: document.getElementById("split-env-westsun") ? document.getElementById("split-env-westsun").checked : state.splitACSizer.envWestSun,
+      glass: document.getElementById("split-env-glass") ? document.getElementById("split-env-glass").checked : state.splitACSizer.envGlass,
+      people: document.getElementById("split-env-people") ? document.getElementById("split-env-people").checked : state.splitACSizer.envPeople,
+      equip: document.getElementById("split-env-equipment") ? document.getElementById("split-env-equipment").checked : state.splitACSizer.envEquip,
+      ironRoof: document.getElementById("split-env-ironroof") ? document.getElementById("split-env-ironroof").checked : state.splitACSizer.envIronRoof
     };
 
     // Calculate sizing demand
     const calcResult = HVACSplitACSizer.calcCoolingDemand(
-      s.roomType,
+      roomType,
       effectivePing,
-      s.height,
+      height,
       envFactors
     );
 
@@ -1218,12 +1288,12 @@
     if (detailEl) {
       const factorList = [];
       if (calcResult.heightFactorPercent > 0) factorList.push(`樓高挑高 +${calcResult.heightFactorPercent}%`);
-      if (s.envTopFloor) factorList.push("頂樓日曬 +20%");
-      if (s.envWestSun) factorList.push("西曬嚴重 +20%");
-      if (s.envGlass) factorList.push("落地大窗 +15%");
-      if (s.envPeople) factorList.push("人數眾多 +10%");
-      if (s.envEquip) factorList.push("高熱電器 +10%");
-      if (s.envIronRoof) factorList.push("鐵皮屋 +35%");
+      if (envFactors.topFloor) factorList.push("頂樓日曬 +20%");
+      if (envFactors.westSun) factorList.push("西曬嚴重 +20%");
+      if (envFactors.glass) factorList.push("落地大窗 +15%");
+      if (envFactors.people) factorList.push("人數眾多 +10%");
+      if (envFactors.equip) factorList.push("高熱電器 +10%");
+      if (envFactors.ironRoof) factorList.push("鐵皮屋 +35%");
 
       const factorText = factorList.length > 0 ? factorList.join("、") : "無特殊熱源加成 (標準工況)";
 
@@ -1236,7 +1306,7 @@
     }
 
     // Match Brand Models
-    const matchedModels = HVACSplitACSizer.matchBrandModels(calcResult.recommendedKW, s.selectedBrands);
+    const matchedModels = HVACSplitACSizer.matchBrandModels(calcResult.recommendedKW, state.splitACSizer.selectedBrands);
 
     // Update Matched Count
     const countBadge = document.getElementById("split-match-count");
