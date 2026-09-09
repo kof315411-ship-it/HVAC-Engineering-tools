@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>HVAC 空調工程小工具 - 離線計算器</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0284c7">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="空調工程">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+</head>
+<body>
+  <!-- Header -->
+  <header class="app-header">
+    <div class="header-content">
+      <div class="brand">
+        <div class="brand-icon">❄️</div>
+        <div class="brand-title">空調工程小工具</div>
+      </div>
+      <div class="header-actions">
+        <a href="https://github.com/kof315411-ship-it/HVAC-Engineering-tools/releases/latest/download/HVAC-Engineering-Tools.apk" class="apk-download-btn" title="下載 Android APK 安裝檔">📥 下載 APK</a>
+        <div class="offline-badge" id="offline-status">100% 離線可用</div>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <!-- Desktop Navigation Tabs -->
+    <nav class="tab-nav">
+      <button class="tab-btn active" data-tab="tab-load">🔥 空調負載計算</button>
+      <button class="tab-btn" data-tab="tab-duct">🌀 風管壓損計算</button>
+      <button class="tab-btn" data-tab="tab-sheet">📐 鐵皮才數計算</button>
+      <button class="tab-btn" data-tab="tab-pipe">💧 管徑表速查</button>
+      <button class="tab-btn" data-tab="tab-wire">⚡ 電線配管選用</button>
+      <button class="tab-btn" data-tab="tab-insulation">🧥 配管保溫選用</button>
+      <button class="tab-btn" data-tab="tab-split">❄️ 分離式試算選機</button>
+    </nav>
+
+    <!-- TAB 1: 空調負載計算 -->
+    <section id="tab-load" class="tab-pane active">
+      <!-- Global Ambient Parameters -->
+      <div class="card">
+        <div class="card-title">
+          <span>外氣與環境預設變數 (可編輯欄位)</span>
+        </div>
+        <div class="grid-3">
+          <div class="form-group">
+            <label class="form-label">外氣乾球溫度 (Tout)</label>
+            <div class="input-wrapper">
+              <input type="number" id="load-out-temp" class="form-control has-unit" value="33" step="0.1" inputmode="decimal">
+              <span class="input-unit">°Cdb</span>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">外氣相對濕度 (RHout)</label>
+            <div class="input-wrapper">
+              <input type="number" id="load-out-rh" class="form-control has-unit" value="75" step="0.1" inputmode="decimal">
+              <span class="input-unit">%RH</span>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">外氣焓值 (Excel公式自動算)</label>
+            <div class="input-wrapper">
+              <input type="text" id="load-out-enthalpy" class="form-control has-unit" readonly style="background-color: #e2e8f0; font-weight: bold;" value="22.54">
+              <span class="input-unit">Kcal/kg</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Project Total Result Card -->
+      <div class="result-card">
+        <div class="result-title">專案全區空調冷負載總計 (含外氣 - 原始Excel帶入公式)</div>
+        <div class="result-value" id="load-total-rt">0.00 <span style="font-size: 20px;">RT</span></div>
+        <div class="result-sub" id="load-total-kcal">總發熱量: 0 Kcal/h | 冬季總負載 (AB*0.6): 0.00 RT</div>
+      </div>
+
+      <!-- Room List & Add Room -->
+      <div class="card">
+        <div class="card-title">
+          <span>空間變數列表 (輸入框僅開放原始Excel變數)</span>
+          <button class="btn btn-primary btn-sm" id="btn-add-room">+ 新增空間</button>
+        </div>
+        <div id="room-list-container">
+          <!-- Dynamic rooms will be rendered here -->
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 2: 風管壓損計算 -->
+    <section id="tab-duct" class="tab-pane">
+      <div class="result-card success-gradient">
+        <div class="result-title">風管系統總靜壓損失 (含安全係數 20%)</div>
+        <div class="result-value" id="duct-total-pa">0.0 <span style="font-size: 20px;">Pa</span></div>
+        <div class="result-sub" id="duct-total-mmaq">約等於 0.00 mmAq | 原始Excel對照公式</div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">
+          <span>風管與局部阻力輸入變數</span>
+        </div>
+        <div class="grid-2">
+          <div class="form-group">
+            <label class="form-label">風量 (Q)</label>
+            <div class="input-wrapper">
+              <input type="number" id="duct-flow" class="form-control has-unit" value="5000" step="any" inputmode="decimal">
+              <span class="input-unit">CMH</span>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">風管寬度 (W)</label>
+            <div class="input-wrapper">
+              <input type="number" id="duct-width" class="form-control has-unit" value="950" step="any" inputmode="decimal">
+              <span class="input-unit">mm</span>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">風管高度 (H)</label>
+            <div class="input-wrapper">
+              <input type="number" id="duct-height" class="form-control has-unit" value="400" step="any" inputmode="decimal">
+              <span class="input-unit">mm</span>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">直線管長 (L)</label>
+            <div class="input-wrapper">
+              <input type="number" id="duct-length" class="form-control has-unit" value="10" step="any" inputmode="decimal">
+              <span class="input-unit">m</span>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">局部配件類型</label>
+            <select id="duct-fitting-type" class="form-control">
+              <!-- Dynamically populated -->
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">配件數量</label>
+            <div class="input-wrapper">
+              <input type="number" id="duct-fitting-qty" class="form-control has-unit" value="1" min="1" step="1" inputmode="numeric">
+              <span class="input-unit">個</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">單段 Excel 公式推算結果 (唯讀欄位)</div>
+        <div class="grid-4">
+          <div class="stat-box">
+            <div class="stat-title">當量直徑 (Deq)</div>
+            <div class="stat-value" id="res-duct-deq">0</div>
+            <div class="stat-unit">mm</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-title">風管風速 (V)</div>
+            <div class="stat-value" id="res-duct-velocity">0.0</div>
+            <div class="stat-unit">m/s</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-title">風速動壓 (Pv)</div>
+            <div class="stat-value" id="res-duct-pv">0.0</div>
+            <div class="stat-unit">Pa</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-title">單位摩擦損失</div>
+            <div class="stat-value" id="res-duct-friction">0.00</div>
+            <div class="stat-unit">Pa/m</div>
+          </div>
+        </div>
+
+        <div style="margin-top: 16px;">
+          <button class="btn btn-primary" id="btn-add-duct-segment" style="width: 100%;">+ 將此段加入系統壓損清單</button>
+        </div>
+
+        <div class="table-responsive">
+          <table class="custom-table" id="duct-segment-table">
+            <thead>
+              <tr>
+                <th>段號</th>
+                <th>尺寸 (W×H)</th>
+                <th>風量 (CMH)</th>
+                <th>風速 (m/s)</th>
+                <th>長度 (m)</th>
+                <th>配件類型</th>
+                <th>總壓損 (Pa)</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Dynamic rows -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 3: 鐵皮才數計算 -->
+    <section id="tab-sheet" class="tab-pane">
+      <div class="card">
+        <div class="card-title">風管尺寸與鈑材輸入變數</div>
+        <div class="grid-3">
+          <div class="form-group">
+            <label class="form-label">風管長CM (L_cm)</label>
+            <div class="input-wrapper">
+              <input type="number" id="sheet-width" class="form-control has-unit" value="80" step="any" inputmode="decimal">
+              <span class="input-unit">cm</span>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">風管寬CM (W_cm)</label>
+            <div class="input-wrapper">
+              <input type="number" id="sheet-height" class="form-control has-unit" value="40" step="any" inputmode="decimal">
+              <span class="input-unit">cm</span>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">米數 M (長度)</label>
+            <div class="input-wrapper">
+              <input type="number" id="sheet-length" class="form-control has-unit" value="1.2" step="any" inputmode="decimal">
+              <span class="input-unit">m</span>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">風管支數 N (米數/1.2，未整除無條件+1)</label>
+            <div class="input-wrapper">
+              <input type="text" id="sheet-qty" class="form-control has-unit" readonly style="background-color: #e2e8f0; font-weight: bold;" value="1">
+              <span class="input-unit">支</span>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">預估裁切損耗率 (%)</label>
+            <div class="input-wrapper">
+              <input type="number" id="sheet-waste" class="form-control has-unit" value="10" step="any" inputmode="decimal">
+              <span class="input-unit">%</span>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">板材換算 (H10判斷公式自動推算)</label>
+            <div class="input-wrapper">
+              <input type="text" id="sheet-thickness" class="form-control has-unit" readonly style="background-color: #e2e8f0; font-weight: bold;" value="22# (0.8mm)">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="result-card warning-gradient">
+        <div class="result-title">原始 Excel 帶入公式計算結果 (唯讀欄位)</div>
+        <div class="result-value" id="res-sheet-tsai">0.0 <span style="font-size: 20px;">才</span></div>
+        <div class="result-sub" id="res-sheet-3x7">需 3'×7' 鍍鋅鐵皮: 0.0 張 | M2數 (淨展開面積): 0.0 m²</div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">詳細材料與配件 Excel 公式估算 (唯讀欄位)</div>
+        <div class="grid-4">
+          <div class="stat-box">
+            <div class="stat-title">風管周長</div>
+            <div class="stat-value" id="res-sheet-perimeter">0</div>
+            <div class="stat-unit">cm</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-title">總重量</div>
+            <div class="stat-value" id="res-sheet-weight">0.0</div>
+            <div class="stat-unit">kg</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-title">L 法蘭角</div>
+            <div class="stat-value" id="res-sheet-corners">0</div>
+            <div class="stat-unit">個</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-title">法蘭夾片</div>
+            <div class="stat-value" id="res-sheet-clips">0</div>
+            <div class="stat-unit">支</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-title">法蘭墊片</div>
+            <div class="stat-value" id="res-sheet-gasket">0.0</div>
+            <div class="stat-unit">米 (m)</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 4: 管徑表速查 -->
+    <section id="tab-pipe" class="tab-pane">
+      <div class="card">
+        <div class="card-title">系統與冷負荷輸入變數</div>
+        <div class="form-group" style="margin-bottom: 12px;">
+          <label class="form-label">選擇水管系統種類 (原始Excel標準參數)</label>
+          <div style="display: flex; gap: 20px; margin-top: 4px;">
+            <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-weight: 600;">
+              <input type="radio" name="pipe-sys-type" value="chilled" checked> 🧊 冰水管路 (1 RT = 10.08 LPM)
+            </label>
+            <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-weight: 600;">
+              <input type="radio" name="pipe-sys-type" value="cooling"> ♨️ 冷卻水管路 (1 RT = 12.8 LPM)
+            </label>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="form-group">
+            <label class="form-label">輸入冷凍噸數 (RT)</label>
+            <div class="input-wrapper">
+              <input type="number" id="pipe-input-rt" class="form-control has-unit" placeholder="例如: 100" step="any" inputmode="decimal">
+              <span class="input-unit">RT</span>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">或輸入水流量 (LPM)</label>
+            <div class="input-wrapper">
+              <input type="number" id="pipe-input-lpm" class="form-control has-unit" placeholder="例如: 1008" step="any" inputmode="decimal">
+              <span class="input-unit">LPM</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="result-card purple-gradient">
+        <div class="result-title">推薦使用主水管規格 (原始 Excel 對照推算)</div>
+        <div class="result-value" id="res-pipe-recommended">--</div>
+        <div class="result-sub" id="res-pipe-sub">計算流量: 0.0 LPM (最高支援 0.0 LPM)</div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">原始 Excel 管徑表完整對照表</div>
+        <div class="table-responsive">
+          <table class="custom-table" id="pipe-reference-table">
+            <thead>
+              <tr>
+                <th>公稱管徑 (A/DN)</th>
+                <th>英吋管徑 (Inch)</th>
+                <th>最大容許流量 (LPM)</th>
+                <th>對應最大冷凍噸 (RT)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Dynamic rows -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 5: 電線線徑、配管選用查詢 -->
+    <section id="tab-wire" class="tab-pane">
+      <div class="result-card amber-gradient">
+        <div class="result-title">推薦使用電線規格與法規安全載流量 (依據《用戶用電設備裝置規則》)</div>
+        <div class="result-value" id="res-wire-gauge">--</div>
+        <div class="result-sub" id="res-wire-ampacity">法規額定安全電流: 0.0 A (環境周溫修正後: 0.0 A)</div>
+      </div>
+
+      <!-- Conduit Recommendation Cards -->
+      <div class="grid-3" style="margin-bottom: 20px;">
+        <div class="stat-box" style="border-left: 4px solid #ea580c;">
+          <div class="stat-title">金屬管 (EMT 薄鋼管)</div>
+          <div class="stat-value" id="res-conduit-emt" style="color: #ea580c; font-size: 18px;">--</div>
+          <div class="stat-unit">無螺紋薄鋼導線管</div>
+        </div>
+        <div class="stat-box" style="border-left: 4px solid #0284c7;">
+          <div class="stat-title">金屬管 (厚鋼管 RSG/GIP)</div>
+          <div class="stat-value" id="res-conduit-thick" style="color: #0284c7; font-size: 18px;">--</div>
+          <div class="stat-unit">厚鋼電線管 / 鍍鋅鋼管</div>
+        </div>
+        <div class="stat-box" style="border-left: 4px solid #10b981;">
+          <div class="stat-title">PVC 管 (塑膠導線管)</div>
+          <div class="stat-value" id="res-conduit-pvc" style="color: #10b981; font-size: 18px;">--</div>
+          <div class="stat-unit">硬質 PVC 電線導管 (E管/厚管)</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">
+          <span>負載電流與配線條件設定</span>
+        </div>
+        
+        <div class="form-group" style="margin-bottom: 16px;">
+          <label class="form-label">輸入負載運轉電流 (安培 A)</label>
+          <div class="input-wrapper">
+            <input type="number" id="wire-input-current" class="form-control has-unit" placeholder="例如: 25" step="any" inputmode="decimal">
+            <span class="input-unit">A (安培)</span>
+          </div>
+          <!-- Quick Preset Buttons -->
+          <div class="quick-btn-group" id="wire-quick-btns">
+            <button type="button" class="quick-btn" data-val="15">15A</button>
+            <button type="button" class="quick-btn" data-val="20">20A</button>
+            <button type="button" class="quick-btn" data-val="30">30A</button>
+            <button type="button" class="quick-btn" data-val="40">40A</button>
+            <button type="button" class="quick-btn" data-val="50">50A</button>
+            <button type="button" class="quick-btn" data-val="75">75A</button>
+            <button type="button" class="quick-btn" data-val="100">100A</button>
+            <button type="button" class="quick-btn" data-val="150">150A</button>
+            <button type="button" class="quick-btn" data-val="200">200A</button>
+          </div>
+        </div>
+
+        <div class="grid-3">
+          <div class="form-group">
+            <label class="form-label">適用法規表格 / 絕緣耐熱</label>
+            <select id="wire-select-table" class="form-control">
+              <option value="t25_2" selected>表二五～二：金屬導線管 (60℃ 絕緣物 - IV/PVC線)</option>
+              <option value="t25_3">表二五～三：金屬導線管 (75℃ 耐熱線 - HIV線)</option>
+              <option value="t25_4">表二五～四：金屬導線管 (90℃ 交連PE - XLPE/CZ線)</option>
+              <option value="t25_5">表二五～五：PVC管配線 (60℃ 絕緣物 - IV/PVC線)</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">供電系統 / 載流導線數</label>
+            <select id="wire-select-count" class="form-control">
+              <option value="2">單相二線 1Φ2W (2條載流線)</option>
+              <option value="3" selected>單相三線 / 三相三線 (3條載流線)</option>
+              <option value="4">三相四線 3Φ4W (4條載流線)</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">周圍環境溫度</label>
+            <select id="wire-select-temp" class="form-control">
+              <option value="35" selected>35℃ 以下 (標準基準 1.00)</option>
+              <option value="40">40℃ (係數折減)</option>
+              <option value="45">45℃ (係數折減)</option>
+              <option value="50">50℃ (係數折減)</option>
+              <option value="55">55℃ (係數折減)</option>
+              <option value="60">60℃ (高溫環境)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Side-by-Side Comparison across 4 Tables -->
+      <div class="card">
+        <div class="card-title">
+          <span>四種法規配線方式同步選用對照 (同電流下各表推薦)</span>
+        </div>
+        <div class="comparison-grid" id="wire-comparison-grid">
+          <!-- Dynamic comparison cards -->
+        </div>
+      </div>
+
+      <!-- Full Regulatory Reference Table -->
+      <div class="card">
+        <div class="card-title">
+          <span id="wire-table-title">法規附表完整載流量與配管對照表 (當前選用行將自動高亮)</span>
+        </div>
+        <div class="table-responsive">
+          <table class="custom-table" id="wire-reference-table">
+            <thead>
+              <tr>
+                <th>導線規格</th>
+                <th>3條以下 (A)</th>
+                <th>4條 (A)</th>
+                <th>5~6條 (A)</th>
+                <th>7~9條 (A)</th>
+                <th>金屬管 (EMT)</th>
+                <th>金屬管 (厚鋼)</th>
+                <th>PVC管</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Dynamic table rows -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 6: 配管保溫選用 -->
+    <section id="tab-insulation" class="tab-pane">
+      <div class="result-card teal-gradient">
+        <div class="result-title">推薦使用保溫厚度與總外徑 (依據施工規範第 15080 章《空調用保溫》)</div>
+        <div class="result-value" id="res-insul-thickness">--</div>
+        <div class="result-sub" id="res-insul-sub">保溫後外徑: -- mm | 系統類別: 冰水管路</div>
+      </div>
+
+      <!-- Quick System Fluid Selector -->
+      <div class="card">
+        <div class="card-title">
+          <span>選擇配管系統流體 / 運轉工況</span>
+        </div>
+        <div class="fluid-btn-group" id="insul-fluid-btns">
+          <button type="button" class="fluid-btn active" data-sys="chilled">❄️ 冰水管路 (5~12℃)</button>
+          <button type="button" class="fluid-btn" data-sys="hot">🔥 熱水管路 (40~80℃)</button>
+          <button type="button" class="fluid-btn" data-sys="brine">🧊 低溫鹵水 (-15~0℃)</button>
+          <button type="button" class="fluid-btn" data-sys="drain">💧 冷凝排水 (10~18℃)</button>
+          <button type="button" class="fluid-btn" data-sys="duct">🌬️ 空調風管系統</button>
+        </div>
+
+        <div class="grid-2" style="margin-top: 16px;">
+          <div class="form-group">
+            <label class="form-label">選擇配管口徑 (公稱徑 A / 英吋 Inch)</label>
+            <select id="insul-select-pipe" class="form-control">
+              <!-- Dynamically populated pipe sizes -->
+            </select>
+            <!-- Quick Pipe Buttons -->
+            <div class="quick-btn-group" id="insul-quick-pipes">
+              <button type="button" class="quick-btn" data-pipe="25">25A (1")</button>
+              <button type="button" class="quick-btn" data-pipe="50">50A (2")</button>
+              <button type="button" class="quick-btn" data-pipe="65">65A (2-1/2")</button>
+              <button type="button" class="quick-btn" data-pipe="80">80A (3")</button>
+              <button type="button" class="quick-btn" data-pipe="100">100A (4")</button>
+              <button type="button" class="quick-btn" data-pipe="125">125A (5")</button>
+              <button type="button" class="quick-btn" data-pipe="150">150A (6")</button>
+              <button type="button" class="quick-btn" data-pipe="200">200A (8")</button>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">選擇保溫材質規格</label>
+            <select id="insul-select-material" class="form-control">
+              <option value="phenolic" selected>🌟 酚樹脂保溫材 (Phenolic Foam) - K ≦ 0.022</option>
+              <option value="rubber">🌟 橡塑合成發泡 (NBR/Elastomeric) - K ≦ 0.036</option>
+              <option value="pe">🌟 非鹵素聚乙烯發泡 (PE Foam / CNS 10487) - K ≦ 0.039</option>
+              <option value="glasswool">🌟 玻璃棉保溫材 (Glass Wool / CNS 3657) - K ≦ 0.044</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Material Comparison Cards -->
+      <div class="card">
+        <div class="card-title">
+          <span>三種主流保溫材質規格同步比對 (點擊卡片可切換材質)</span>
+        </div>
+        <div class="comparison-grid" id="insul-comparison-grid">
+          <!-- Dynamic comparison cards -->
+        </div>
+      </div>
+
+      <!-- Specification & Cladding Guidelines -->
+      <div class="grid-2">
+        <div class="card" style="margin-bottom: 20px;">
+          <div class="card-title">選用保溫材物理性能 (第 15080 章規範標準)</div>
+          <ul class="spec-list" id="insul-material-spec">
+            <!-- Dynamic specs -->
+          </ul>
+        </div>
+        <div class="card" style="margin-bottom: 20px;">
+          <div class="card-title">外護層與施工規範要求 (第 15080 章第 3 節)</div>
+          <ul class="spec-list">
+            <li><strong>外護層保護:</strong> 室外、露明處及機房水管保溫應另加外護層，採用 <span style="color: #0d9488; font-weight: bold;">[24# 鋁皮 (0.51mm)]</span> 或 <span style="color: #0d9488; font-weight: bold;">[26# 不銹鋼鐵皮 (0.45mm)]</span>。</li>
+            <li><strong>吊架與鞍座:</strong> 管路支撐、吊架處之吊座或鞍座應為高密度 <span style="color: #0d9488; font-weight: bold;">[200 kg/m³]</span> 耐承重之保溫材料，確保管路承重安全不壓扁保溫層。</li>
+            <li><strong>閥體與管件:</strong> 法蘭、閥及管件應安裝相同厚度之保溫材，過濾器須能單獨拆卸濾網而不損壞保溫層。</li>
+            <li><strong>表面防潮層:</strong> 保溫管應覆蓋防水氣強化鋁箔護套及自封式蓋面，確保氣密防潮。</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Full Pipe-to-Insulation Reference Table -->
+      <div class="card">
+        <div class="card-title">
+          <span id="insul-table-title">管徑－選配保溫尺寸完整對照總表 (選用管徑自動高亮)</span>
+        </div>
+        <div class="table-responsive">
+          <table class="custom-table" id="insul-reference-table">
+            <thead>
+              <tr>
+                <th>公稱管徑 (A/DN)</th>
+                <th>英吋管徑 (Inch)</th>
+                <th>鋼管外徑 (OD)</th>
+                <th>酚樹脂厚度 (外徑)</th>
+                <th>橡塑發泡厚度 (外徑)</th>
+                <th>PE發泡厚度 (外徑)</th>
+                <th>目前選用厚度</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Dynamic table rows -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 7: 分離式試算選機 -->
+    <section id="tab-split" class="tab-pane">
+      <!-- Top Overview / Result Summary Banner -->
+      <div class="result-card split-gradient">
+        <div class="result-title">推薦分離式冷房能力 (標準機種選型)</div>
+        <div class="result-value" id="split-res-kw">0.0 <span style="font-size: 20px;">kW</span></div>
+        <div class="result-sub" id="split-res-sub">計算總需冷量: 0 kcal/h | 0 BTU/h | 0.00 RT</div>
+      </div>
+
+      <!-- Sizing Input Form -->
+      <div class="card">
+        <div class="card-title">
+          <span>空間規格與環境條件設定</span>
+        </div>
+
+        <div class="grid-2">
+          <!-- Room Usage Type -->
+          <div class="form-group">
+            <label class="form-label">空間用途類別 (基準冷度)</label>
+            <select id="split-room-type" class="form-control">
+              <option value="bedroom" selected>一般臥室 / 客房 (450 kcal/h·坪)</option>
+              <option value="living">客廳 / 餐廳 / 開放家庭室 (500 kcal/h·坪)</option>
+              <option value="kitchen">廚房 / 餐廳開放區 (550 kcal/h·坪)</option>
+              <option value="office">辦公室 / 書房 / 多人工作室 (650 kcal/h·坪)</option>
+              <option value="commercial">商業門市 / 營業店面 / 餐廳 (750 kcal/h·坪)</option>
+            </select>
+          </div>
+
+          <!-- Ceiling Height -->
+          <div class="form-group">
+            <label class="form-label">天花板挑高 (高度加成)</label>
+            <div class="input-wrapper">
+              <input type="number" id="split-height" class="form-control has-unit" value="2.8" step="0.1" min="1.5" max="10" inputmode="decimal">
+              <span class="input-unit">公尺 (m)</span>
+            </div>
+            <div class="form-hint" id="split-height-hint">標準樓高 (&le; 2.9m，不加成)</div>
+          </div>
+        </div>
+
+        <!-- Dimension / Area Mode Toggle -->
+        <div class="form-group" style="margin-top: 12px;">
+          <label class="form-label">空間大小輸入方式</label>
+          <div class="fluid-btn-group" id="split-area-mode-group">
+            <button type="button" class="fluid-btn active" data-mode="ping">📏 直接輸入坪數</button>
+            <button type="button" class="fluid-btn" data-mode="dimension">📐 輸入長寬尺寸 (公尺)</button>
+          </div>
+        </div>
+
+        <!-- Direct Ping Input -->
+        <div id="split-ping-container" class="form-group">
+          <label class="form-label">房間坪數 (坪)</label>
+          <div class="input-wrapper">
+            <input type="number" id="split-input-ping" class="form-control has-unit" value="5" step="0.5" min="1" max="100" inputmode="decimal">
+            <span class="input-unit" id="split-ping-unit-hint">坪 (約 16.5 m²)</span>
+          </div>
+        </div>
+
+        <!-- Length x Width Input -->
+        <div id="split-dim-container" class="grid-2" style="display: none;">
+          <div class="form-group">
+            <label class="form-label">房間長度 (L)</label>
+            <div class="input-wrapper">
+              <input type="number" id="split-input-length" class="form-control has-unit" value="4.5" step="0.1" min="0.5" inputmode="decimal">
+              <span class="input-unit">公尺 (m)</span>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">房間寬度 (W)</label>
+            <div class="input-wrapper">
+              <input type="number" id="split-input-width" class="form-control has-unit" value="3.6" step="0.1" min="0.5" inputmode="decimal">
+              <span class="input-unit">公尺 (m)</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Environmental & Heat Load Conditions -->
+        <div class="form-group" style="margin-top: 16px;">
+          <label class="form-label">特殊環境與熱源條件加成 (可複選)</label>
+          <div class="heat-source-grid">
+            <label class="heat-checkbox-item">
+              <input type="checkbox" id="split-env-topfloor" value="0.20">
+              <div class="heat-check-content">
+                <span class="heat-check-title">頂樓 / 日曬頂層</span>
+                <span class="heat-check-badge">+20% 負載</span>
+              </div>
+            </label>
+            <label class="heat-checkbox-item">
+              <input type="checkbox" id="split-env-westsun" value="0.20">
+              <div class="heat-check-content">
+                <span class="heat-check-title">西曬嚴重</span>
+                <span class="heat-check-badge">+20% 負載</span>
+              </div>
+            </label>
+            <label class="heat-checkbox-item">
+              <input type="checkbox" id="split-env-glass" value="0.15">
+              <div class="heat-check-content">
+                <span class="heat-check-title">大面積玻璃窗 / 落地窗</span>
+                <span class="heat-check-badge">+15% 負載</span>
+              </div>
+            </label>
+            <label class="heat-checkbox-item">
+              <input type="checkbox" id="split-env-people" value="0.10">
+              <div class="heat-check-content">
+                <span class="heat-check-title">常態人數眾多 (&gt;5人)</span>
+                <span class="heat-check-badge">+10% 負載</span>
+              </div>
+            </label>
+            <label class="heat-checkbox-item">
+              <input type="checkbox" id="split-env-equipment" value="0.10">
+              <div class="heat-check-content">
+                <span class="heat-check-title">高發熱電器 / 伺服電腦</span>
+                <span class="heat-check-badge">+10% 負載</span>
+              </div>
+            </label>
+            <label class="heat-checkbox-item">
+              <input type="checkbox" id="split-env-ironroof" value="0.35">
+              <div class="heat-check-content">
+                <span class="heat-check-title">鐵皮屋 / 頂加鐵皮</span>
+                <span class="heat-check-badge danger">+35% 負載</span>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <!-- Sizing Action Button -->
+        <div style="margin-top: 20px; display: flex; gap: 10px;">
+          <button type="button" class="btn btn-primary" id="btn-split-calc" style="flex: 1; font-size: 15px; padding: 12px 20px; font-weight: 700; box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25);">
+            ⚡ 開始試算 / 計算推薦選型
+          </button>
+          <button type="button" class="btn btn-secondary" id="btn-split-reset" style="font-size: 14px; padding: 12px 16px;">
+            🔄 重置
+          </button>
+        </div>
+
+        <!-- Sizing Analysis Detail Box -->
+        <div class="info-box" style="margin-top: 18px;">
+          <div class="info-title">📊 負載試算分析結果</div>
+          <div id="split-calc-details" class="info-content" style="font-size: 13px; line-height: 1.6;">
+            <!-- Dynamic analysis summary -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Brand Filter Section -->
+      <div class="card">
+        <div class="card-title">
+          <span>廠牌篩選 (勾選納入比較的品牌，未勾選不列入)</span>
+          <div class="card-actions">
+            <button class="btn btn-secondary btn-xs" id="split-btn-select-all">全選 (19廠牌)</button>
+            <button class="btn btn-secondary btn-xs" id="split-btn-select-none">清除全部</button>
+            <button class="btn btn-secondary btn-xs" id="split-btn-select-tier1">日系一線</button>
+            <button class="btn btn-secondary btn-xs" id="split-btn-select-tw">台灣品牌</button>
+          </div>
+        </div>
+
+        <div class="brand-filter-grid" id="split-brand-filters">
+          <!-- Dynamic brand checkboxes -->
+        </div>
+      </div>
+
+      <!-- Matched Brand Models Comparison Grid -->
+      <div class="card">
+        <div class="card-title">
+          <span>各廠牌能力相近機種推薦比較</span>
+          <span class="badge" id="split-match-count">共 19 廠牌</span>
+        </div>
+
+        <div class="brand-models-grid" id="split-models-grid">
+          <!-- Dynamic matched brand cards -->
+        </div>
+      </div>
+
+      <!-- Full Comparison Table -->
+      <div class="card">
+        <div class="card-title">
+          <span>各大品牌規格橫向對照總表</span>
+        </div>
+        <div class="table-responsive">
+          <table class="custom-table" id="split-models-table">
+            <thead>
+              <tr>
+                <th>品牌廠牌</th>
+                <th>系列定位</th>
+                <th>室內 / 室外機型號</th>
+                <th>冷房能力 (kW)</th>
+                <th>冷氣能力 (BTU)</th>
+                <th>CSPF 能效</th>
+                <th>適用坪數</th>
+                <th>核心特色與技術亮點</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Dynamic table rows -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Mobile Bottom Navigation -->
+  <div class="bottom-nav">
+    <button class="bottom-nav-item active" data-tab="tab-load">
+      <span class="bottom-nav-icon">🔥</span>
+      <span>負載計算</span>
+    </button>
+    <button class="bottom-nav-item" data-tab="tab-duct">
+      <span class="bottom-nav-icon">🌀</span>
+      <span>風管壓損</span>
+    </button>
+    <button class="bottom-nav-item" data-tab="tab-sheet">
+      <span class="bottom-nav-icon">📐</span>
+      <span>鐵皮才數</span>
+    </button>
+    <button class="bottom-nav-item" data-tab="tab-pipe">
+      <span class="bottom-nav-icon">💧</span>
+      <span>管徑速查</span>
+    </button>
+    <button class="bottom-nav-item" data-tab="tab-wire">
+      <span class="bottom-nav-icon">⚡</span>
+      <span>電線配管</span>
+    </button>
+    <button class="bottom-nav-item" data-tab="tab-insulation">
+      <span class="bottom-nav-icon">🧥</span>
+      <span>配管保溫</span>
+    </button>
+    <button class="bottom-nav-item" data-tab="tab-split">
+      <span class="bottom-nav-icon">❄️</span>
+      <span>分離選機</span>
+    </button>
+  </div>
+
+  <script src="js/load-calc.js"></script>
+  <script src="js/duct-loss.js"></script>
+  <script src="js/sheet-metal.js"></script>
+  <script src="js/pipe-sizer.js"></script>
+  <script src="js/wire-sizer.js"></script>
+  <script src="js/insulation-sizer.js"></script>
+  <script src="js/split-ac-sizer.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
