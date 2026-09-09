@@ -34,6 +34,8 @@
       <button class="tab-btn" data-tab="tab-duct">🌀 風管壓損計算</button>
       <button class="tab-btn" data-tab="tab-sheet">📐 鐵皮才數計算</button>
       <button class="tab-btn" data-tab="tab-pipe">💧 管徑表速查</button>
+      <button class="tab-btn" data-tab="tab-wire">⚡ 電線配管選用</button>
+      <button class="tab-btn" data-tab="tab-insulation">🧥 配管保溫選用</button>
     </nav>
 
     <!-- TAB 1: 空調負載計算 -->
@@ -336,6 +338,236 @@
         </div>
       </div>
     </section>
+
+    <!-- TAB 5: 電線線徑、配管選用查詢 -->
+    <section id="tab-wire" class="tab-pane">
+      <div class="result-card amber-gradient">
+        <div class="result-title">推薦使用電線規格與法規安全載流量 (依據《用戶用電設備裝置規則》)</div>
+        <div class="result-value" id="res-wire-gauge">--</div>
+        <div class="result-sub" id="res-wire-ampacity">法規額定安全電流: 0.0 A (環境周溫修正後: 0.0 A)</div>
+      </div>
+
+      <!-- Conduit Recommendation Cards -->
+      <div class="grid-3" style="margin-bottom: 20px;">
+        <div class="stat-box" style="border-left: 4px solid #ea580c;">
+          <div class="stat-title">金屬管 (EMT 薄鋼管)</div>
+          <div class="stat-value" id="res-conduit-emt" style="color: #ea580c; font-size: 18px;">--</div>
+          <div class="stat-unit">無螺紋薄鋼導線管</div>
+        </div>
+        <div class="stat-box" style="border-left: 4px solid #0284c7;">
+          <div class="stat-title">金屬管 (厚鋼管 RSG/GIP)</div>
+          <div class="stat-value" id="res-conduit-thick" style="color: #0284c7; font-size: 18px;">--</div>
+          <div class="stat-unit">厚鋼電線管 / 鍍鋅鋼管</div>
+        </div>
+        <div class="stat-box" style="border-left: 4px solid #10b981;">
+          <div class="stat-title">PVC 管 (塑膠導線管)</div>
+          <div class="stat-value" id="res-conduit-pvc" style="color: #10b981; font-size: 18px;">--</div>
+          <div class="stat-unit">硬質 PVC 電線導管 (E管/厚管)</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">
+          <span>負載電流與配線條件設定</span>
+        </div>
+        
+        <div class="form-group" style="margin-bottom: 16px;">
+          <label class="form-label">輸入負載運轉電流 (安培 A)</label>
+          <div class="input-wrapper">
+            <input type="number" id="wire-input-current" class="form-control has-unit" placeholder="例如: 25" step="any" inputmode="decimal">
+            <span class="input-unit">A (安培)</span>
+          </div>
+          <!-- Quick Preset Buttons -->
+          <div class="quick-btn-group" id="wire-quick-btns">
+            <button type="button" class="quick-btn" data-val="15">15A</button>
+            <button type="button" class="quick-btn" data-val="20">20A</button>
+            <button type="button" class="quick-btn" data-val="30">30A</button>
+            <button type="button" class="quick-btn" data-val="40">40A</button>
+            <button type="button" class="quick-btn" data-val="50">50A</button>
+            <button type="button" class="quick-btn" data-val="75">75A</button>
+            <button type="button" class="quick-btn" data-val="100">100A</button>
+            <button type="button" class="quick-btn" data-val="150">150A</button>
+            <button type="button" class="quick-btn" data-val="200">200A</button>
+          </div>
+        </div>
+
+        <div class="grid-3">
+          <div class="form-group">
+            <label class="form-label">適用法規表格 / 絕緣耐熱</label>
+            <select id="wire-select-table" class="form-control">
+              <option value="t25_2" selected>表二五～二：金屬導線管 (60℃ 絕緣物 - IV/PVC線)</option>
+              <option value="t25_3">表二五～三：金屬導線管 (75℃ 耐熱線 - HIV線)</option>
+              <option value="t25_4">表二五～四：金屬導線管 (90℃ 交連PE - XLPE/CZ線)</option>
+              <option value="t25_5">表二五～五：PVC管配線 (60℃ 絕緣物 - IV/PVC線)</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">供電系統 / 載流導線數</label>
+            <select id="wire-select-count" class="form-control">
+              <option value="2">單相二線 1Φ2W (2條載流線)</option>
+              <option value="3" selected>單相三線 / 三相三線 (3條載流線)</option>
+              <option value="4">三相四線 3Φ4W (4條載流線)</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">周圍環境溫度</label>
+            <select id="wire-select-temp" class="form-control">
+              <option value="35" selected>35℃ 以下 (標準基準 1.00)</option>
+              <option value="40">40℃ (係數折減)</option>
+              <option value="45">45℃ (係數折減)</option>
+              <option value="50">50℃ (係數折減)</option>
+              <option value="55">55℃ (係數折減)</option>
+              <option value="60">60℃ (高溫環境)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Side-by-Side Comparison across 4 Tables -->
+      <div class="card">
+        <div class="card-title">
+          <span>四種法規配線方式同步選用對照 (同電流下各表推薦)</span>
+        </div>
+        <div class="comparison-grid" id="wire-comparison-grid">
+          <!-- Dynamic comparison cards -->
+        </div>
+      </div>
+
+      <!-- Full Regulatory Reference Table -->
+      <div class="card">
+        <div class="card-title">
+          <span id="wire-table-title">法規附表完整載流量與配管對照表 (當前選用行將自動高亮)</span>
+        </div>
+        <div class="table-responsive">
+          <table class="custom-table" id="wire-reference-table">
+            <thead>
+              <tr>
+                <th>導線規格</th>
+                <th>3條以下 (A)</th>
+                <th>4條 (A)</th>
+                <th>5~6條 (A)</th>
+                <th>7~9條 (A)</th>
+                <th>金屬管 (EMT)</th>
+                <th>金屬管 (厚鋼)</th>
+                <th>PVC管</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Dynamic table rows -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 6: 配管保溫選用 -->
+    <section id="tab-insulation" class="tab-pane">
+      <div class="result-card teal-gradient">
+        <div class="result-title">推薦使用保溫厚度與總外徑 (依據施工規範第 15080 章《空調用保溫》)</div>
+        <div class="result-value" id="res-insul-thickness">--</div>
+        <div class="result-sub" id="res-insul-sub">保溫後外徑: -- mm | 系統類別: 冰水管路</div>
+      </div>
+
+      <!-- Quick System Fluid Selector -->
+      <div class="card">
+        <div class="card-title">
+          <span>選擇配管系統流體 / 運轉工況</span>
+        </div>
+        <div class="fluid-btn-group" id="insul-fluid-btns">
+          <button type="button" class="fluid-btn active" data-sys="chilled">❄️ 冰水管路 (5~12℃)</button>
+          <button type="button" class="fluid-btn" data-sys="hot">🔥 熱水管路 (40~80℃)</button>
+          <button type="button" class="fluid-btn" data-sys="brine">🧊 低溫鹵水 (-15~0℃)</button>
+          <button type="button" class="fluid-btn" data-sys="drain">💧 冷凝排水 (10~18℃)</button>
+          <button type="button" class="fluid-btn" data-sys="duct">🌬️ 空調風管系統</button>
+        </div>
+
+        <div class="grid-2" style="margin-top: 16px;">
+          <div class="form-group">
+            <label class="form-label">選擇配管口徑 (公稱徑 A / 英吋 Inch)</label>
+            <select id="insul-select-pipe" class="form-control">
+              <!-- Dynamically populated pipe sizes -->
+            </select>
+            <!-- Quick Pipe Buttons -->
+            <div class="quick-btn-group" id="insul-quick-pipes">
+              <button type="button" class="quick-btn" data-pipe="25">25A (1")</button>
+              <button type="button" class="quick-btn" data-pipe="50">50A (2")</button>
+              <button type="button" class="quick-btn" data-pipe="65">65A (2-1/2")</button>
+              <button type="button" class="quick-btn" data-pipe="80">80A (3")</button>
+              <button type="button" class="quick-btn" data-pipe="100">100A (4")</button>
+              <button type="button" class="quick-btn" data-pipe="125">125A (5")</button>
+              <button type="button" class="quick-btn" data-pipe="150">150A (6")</button>
+              <button type="button" class="quick-btn" data-pipe="200">200A (8")</button>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">選擇保溫材質規格</label>
+            <select id="insul-select-material" class="form-control">
+              <option value="phenolic" selected>🌟 酚樹脂保溫材 (Phenolic Foam) - K ≦ 0.022</option>
+              <option value="rubber">🌟 橡塑合成發泡 (NBR/Elastomeric) - K ≦ 0.036</option>
+              <option value="pe">🌟 非鹵素聚乙烯發泡 (PE Foam / CNS 10487) - K ≦ 0.039</option>
+              <option value="glasswool">🌟 玻璃棉保溫材 (Glass Wool / CNS 3657) - K ≦ 0.044</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Material Comparison Cards -->
+      <div class="card">
+        <div class="card-title">
+          <span>三種主流保溫材質規格同步比對 (點擊卡片可切換材質)</span>
+        </div>
+        <div class="comparison-grid" id="insul-comparison-grid">
+          <!-- Dynamic comparison cards -->
+        </div>
+      </div>
+
+      <!-- Specification & Cladding Guidelines -->
+      <div class="grid-2">
+        <div class="card" style="margin-bottom: 20px;">
+          <div class="card-title">選用保溫材物理性能 (第 15080 章規範標準)</div>
+          <ul class="spec-list" id="insul-material-spec">
+            <!-- Dynamic specs -->
+          </ul>
+        </div>
+        <div class="card" style="margin-bottom: 20px;">
+          <div class="card-title">外護層與施工規範要求 (第 15080 章第 3 節)</div>
+          <ul class="spec-list">
+            <li><strong>外護層保護:</strong> 室外、露明處及機房水管保溫應另加外護層，採用 <span style="color: #0d9488; font-weight: bold;">[24# 鋁皮 (0.51mm)]</span> 或 <span style="color: #0d9488; font-weight: bold;">[26# 不銹鋼鐵皮 (0.45mm)]</span>。</li>
+            <li><strong>吊架與鞍座:</strong> 管路支撐、吊架處之吊座或鞍座應為高密度 <span style="color: #0d9488; font-weight: bold;">[200 kg/m³]</span> 耐承重之保溫材料，確保管路承重安全不壓扁保溫層。</li>
+            <li><strong>閥體與管件:</strong> 法蘭、閥及管件應安裝相同厚度之保溫材，過濾器須能單獨拆卸濾網而不損壞保溫層。</li>
+            <li><strong>表面防潮層:</strong> 保溫管應覆蓋防水氣強化鋁箔護套及自封式蓋面，確保氣密防潮。</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Full Pipe-to-Insulation Reference Table -->
+      <div class="card">
+        <div class="card-title">
+          <span id="insul-table-title">管徑－選配保溫尺寸完整對照總表 (選用管徑自動高亮)</span>
+        </div>
+        <div class="table-responsive">
+          <table class="custom-table" id="insul-reference-table">
+            <thead>
+              <tr>
+                <th>公稱管徑 (A/DN)</th>
+                <th>英吋管徑 (Inch)</th>
+                <th>鋼管外徑 (OD)</th>
+                <th>酚樹脂厚度 (外徑)</th>
+                <th>橡塑發泡厚度 (外徑)</th>
+                <th>PE發泡厚度 (外徑)</th>
+                <th>目前選用厚度</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Dynamic table rows -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
   </main>
 
   <!-- Mobile Bottom Navigation -->
@@ -356,12 +588,22 @@
       <span class="bottom-nav-icon">💧</span>
       <span>管徑速查</span>
     </button>
+    <button class="bottom-nav-item" data-tab="tab-wire">
+      <span class="bottom-nav-icon">⚡</span>
+      <span>電線配管</span>
+    </button>
+    <button class="bottom-nav-item" data-tab="tab-insulation">
+      <span class="bottom-nav-icon">🧥</span>
+      <span>配管保溫</span>
+    </button>
   </div>
 
   <script src="js/load-calc.js"></script>
   <script src="js/duct-loss.js"></script>
   <script src="js/sheet-metal.js"></script>
   <script src="js/pipe-sizer.js"></script>
+  <script src="js/wire-sizer.js"></script>
+  <script src="js/insulation-sizer.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>
