@@ -1304,7 +1304,7 @@
 
       detailEl.innerHTML = `
         <div>📌 <strong>空間規格:</strong> ${calcResult.roomInfo.name} | 計算坪數: <strong>${calcResult.areaPing} 坪</strong> (約 ${(calcResult.areaPing / 0.3025).toFixed(1)} m²) | 樓高: ${calcResult.heightM}m</div>
-        <div>🔥 <strong>冷房基準:</strong> 原始基礎 ${calcResult.roomInfo.baseRate} kcal/h·坪 &rarr; 經條件加成後為 <strong style="color: #0284c7;">${calcResult.actualRatePerPing} kcal/h·坪</strong> (總加成 +${calcResult.totalFactorPercent}%)</div>
+        <div>🔥 <strong>冷房基準:</strong> 基礎 ${calcResult.roomInfo.baseRate} kcal/h·坪 &rarr; 經條件加成後為 <strong style="color: #0284c7;">${calcResult.actualRatePerPing} kcal/h·坪</strong> (總加成 +${calcResult.totalFactorPercent}%)</div>
         <div>💡 <strong>加成項目:</strong> ${factorText}</div>
         <div>🎯 <strong>選型建議:</strong> 標準分離式級距建議選配 <strong style="color: #0284c7; font-size: 14px;">${calcResult.recommendedKW} kW</strong> (約 ${(calcResult.recommendedKW * 860).toLocaleString()} kcal/h / ${(calcResult.recommendedKW * 860 * 3.968).toFixed(0)} BTU/h)</div>
       `;
