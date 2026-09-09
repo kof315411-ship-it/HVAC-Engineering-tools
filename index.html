@@ -37,7 +37,6 @@
       <div class="card">
         <div class="card-title">
           <span>外氣與環境預設</span>
-          <button class="btn btn-outline btn-sm" id="btn-reset-ambient">重設預設值</button>
         </div>
         <div class="grid-3">
           <div class="form-group">
@@ -94,7 +93,6 @@
       <div class="card">
         <div class="card-title">
           <span>風管與局部阻力單段計算</span>
-          <button class="btn btn-outline btn-sm" id="btn-reset-duct">重設輸入</button>
         </div>
         <div class="grid-2">
           <div class="form-group">
@@ -315,7 +313,7 @@
       </div>
 
       <div class="card">
-        <div class="card-title">完整標準管徑對照參照表 (點擊或搜尋即時高亮)</div>
+        <div class="card-title">完整標準管徑對照參照表 (輸入時自動高亮匹配行)</div>
         <div class="table-responsive">
           <table class="custom-table" id="pipe-reference-table">
             <thead>
@@ -355,6 +353,11 @@
     </button>
   </div>
 
-  <script type="module" src="js/app.js"></script>
+  <!-- Standard non-module script loading for direct file:// CORS compatibility -->
+  <script src="js/load-calc.js"></script>
+  <script src="js/duct-loss.js"></script>
+  <script src="js/sheet-metal.js"></script>
+  <script src="js/pipe-sizer.js"></script>
+  <script src="js/app.js"></script>
 </body>
 </html>
