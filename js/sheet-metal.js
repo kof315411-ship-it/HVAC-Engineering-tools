@@ -1,5 +1,6 @@
 /**
  * HVAC Sheet Metal / Duct Surface Area Calculation Module (鐵皮才數計算 - 帶入原始 Excel 完整公式)
+ * Reference: 原始 Excel 檔案《算鐵皮才數.xls》
  */
 
 window.HVACSheetMetal = {
@@ -16,7 +17,7 @@ window.HVACSheetMetal = {
   calcSheetMetal: function(params) {
     const widthCM = params.widthCM !== undefined ? params.widthCM : 80;
     const heightCM = params.heightCM !== undefined ? params.heightCM : 40;
-    const lengthM = params.lengthM !== undefined ? params.lengthM : 1.2;
+    const lengthM = params.lengthM !== undefined ? params.lengthM : 120;
     const wasteRate = params.wasteRate !== undefined ? params.wasteRate : 0.10;
 
     const w = parseFloat(widthCM) || 0;
@@ -24,39 +25,37 @@ window.HVACSheetMetal = {
     const l = parseFloat(lengthM) || 0;
     const waste = parseFloat(wasteRate) || 0;
 
-    // Excel H10 formula decision based on A10 (長CM):
+    // Excel H10 formula: 依最大邊長判斷板材號數
     const maxSideCM = Math.max(w, h);
     const gaugeInfo = this.getGaugeByLengthCM(maxSideCM);
 
-    // Excel formula: 風管支數 N = 米數 (長度 M) / 1.2
-    const n = l > 0 ? l / 1.2 : 0;
-
-    // 周長 Perimeter (cm) = (L_cm + W_cm) * 2
+    // 風管周長 (cm) = (長CM + 寬CM) * 2
     const perimeterCM = (w + h) * 2;
     const perimeterM = perimeterCM / 100.0;
 
-    // M2數 (包含裁切損耗率)
-    // Excel formula: PerimeterM * LengthM * Qty * (1 + waste)
-    const netAreaM2 = perimeterM * l * n;
-    const grossAreaM2 = netAreaM2 * (1 + waste);
+    // Excel Col D (風管支數): = 米數 / 1.2
+    const n = l > 0 ? l / 1.2 : 0;
 
-    // 保溫才數 (1 m2 = 10.76391 才)
-    const netTsai = netAreaM2 * 10.76391;
-    const grossTsai = grossAreaM2 * 10.76391;
+    // Excel Col G (保溫才數): = (((長CM + 寬CM) * 2 * 米數) / 9.29) * 1.2
+    const tsai = l > 0 ? (((w + h) * 2 * l) / 9.29) * 1.2 : 0;
 
-    // 3'×7'張數 = 保溫才數 / 21
-    const sheets3x7Net = netTsai / 21.0;
-    const sheets3x7Gross = grossTsai / 21.0;
+    // Excel Col E (3'×7'張數): = 保溫才數 / 21
+    const sheets3x7 = tsai / 21.0;
 
-    // 總重量 (kg) = M2數 * 鈑材每米平方重量
-    const weightKgNet = netAreaM2 * gaugeInfo.weightPerM2;
-    const weightKgGross = grossAreaM2 * gaugeInfo.weightPerM2;
+    // Excel Col F (M2數): = 保溫才數 / 10.76
+    const areaM2 = tsai / 10.76;
 
-    // 法蘭與配件估算
-    const sectionCount = Math.max(1, Math.ceil(l / 1.2)) * n;
-    const flangeCornersPcs = 4 * sectionCount * 2;
-    const flangeClipsPcs = Math.ceil((perimeterCM / 15) * sectionCount * 2);
-    const gasketTapeMeters = perimeterM * sectionCount;
+    // Excel Col I (總重量 kg): = (((長CM + 寬CM) * 2 * 7.85) * 米數) / 100
+    const weightKg = l > 0 ? (((w + h) * 2 * 7.85 * l) / 100.0) : 0;
+
+    // Excel Col J (L法蘭角 個): = (米數 / 1.2) * 8 = 風管支數 * 8
+    const flangeCornersPcs = Math.round(n * 8);
+
+    // Excel Col K (法蘭夾片 支): = ((長CM + 寬CM) * 2 / 15) * 風管支數
+    const flangeClipsPcs = Math.round(((w + h) * 2 / 15.0) * n);
+
+    // Excel Col L (墊片 米): = ((長CM + 寬CM) * 2 * 風管支數) / 100
+    const gasketTapeMeters = ((w + h) * 2 * n) / 100.0;
 
     return {
       widthCM: w,
@@ -67,20 +66,15 @@ window.HVACSheetMetal = {
       thicknessMM: gaugeInfo.mm,
       gaugeName: gaugeInfo.name,
       gauge: gaugeInfo.gauge,
-      perimeterCM,
-      perimeterM,
-      netAreaM2,
-      grossAreaM2,
-      netTsai,
-      grossTsai,
-      sheets3x7Net,
-      sheets3x7Gross,
-      weightKgNet,
-      weightKgGross,
-      sectionCount,
-      flangeCornersPcs,
-      flangeClipsPcs,
-      gasketTapeMeters
+      perimeterCM: perimeterCM,
+      perimeterM: perimeterM,
+      areaM2: areaM2,
+      tsai: tsai,
+      sheets3x7: sheets3x7,
+      weightKg: weightKg,
+      flangeCornersPcs: flangeCornersPcs,
+      flangeClipsPcs: flangeClipsPcs,
+      gasketTapeMeters: gasketTapeMeters
     };
   }
 };

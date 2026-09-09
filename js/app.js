@@ -479,14 +479,16 @@
       const weightEl = document.getElementById("res-sheet-weight");
       const cornersEl = document.getElementById("res-sheet-corners");
       const clipsEl = document.getElementById("res-sheet-clips");
+      const gasketEl = document.getElementById("res-sheet-gasket");
 
-      if (tsaiEl) tsaiEl.innerHTML = `${res.grossTsai.toFixed(1)} <span style="font-size: 20px;">才</span>`;
-      if (sheetsEl) sheetsEl.innerText = `需 3'×7' 鍍鋅鐵皮: ${res.sheets3x7Gross.toFixed(1)} 張 (含 ${res.wasteRatePercent}% 損耗) | M2數 (淨展開面積): ${res.netAreaM2.toFixed(1)} m²`;
+      if (tsaiEl) tsaiEl.innerHTML = `${Math.round(res.tsai).toLocaleString()} <span style="font-size: 20px;">才</span> (${res.tsai.toFixed(1)} 才)`;
+      if (sheetsEl) sheetsEl.innerText = `需 3'×7' 鍍鋅鐵皮: ${Math.round(res.sheets3x7)} 張 (${res.sheets3x7.toFixed(1)} 張) | M2數: ${Math.round(res.areaM2)} m² (${res.areaM2.toFixed(1)} m²)`;
 
       if (perimEl) perimEl.innerText = res.perimeterCM;
-      if (weightEl) weightEl.innerText = res.weightKgGross.toFixed(1);
-      if (cornersEl) cornersEl.innerText = res.flangeCornersPcs;
-      if (clipsEl) clipsEl.innerText = res.flangeClipsPcs;
+      if (weightEl) weightEl.innerText = Math.round(res.weightKg).toLocaleString();
+      if (cornersEl) cornersEl.innerText = res.flangeCornersPcs.toLocaleString();
+      if (clipsEl) clipsEl.innerText = res.flangeClipsPcs.toLocaleString();
+      if (gasketEl) gasketEl.innerText = res.gasketTapeMeters.toFixed(1);
     }
 
     [widthInput, heightInput, lengthInput, wasteInput].forEach((el) => {
