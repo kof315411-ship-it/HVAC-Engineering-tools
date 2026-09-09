@@ -434,16 +434,15 @@
   }
 
   /* ==========================================================================
-     TAB 3: 鐵皮才數計算 Controller (帶入 Excel H10 板材自動判斷公式)
+     TAB 3: 鐵皮才數計算 Controller
      ========================================================================== */
   function initSheetMetal() {
     const widthInput = document.getElementById("sheet-width");
     const heightInput = document.getElementById("sheet-height");
     const lengthInput = document.getElementById("sheet-length");
-    const qtyInput = document.getElementById("sheet-qty"); // READ ONLY!
+    const qtyInput = document.getElementById("sheet-qty"); // READ ONLY
     const wasteInput = document.getElementById("sheet-waste");
-    const thicknessInput = document.getElementById("sheet-thickness"); // READ ONLY!
-    const quickLenBtns = document.querySelectorAll(".btn-quick-len");
+    const thicknessInput = document.getElementById("sheet-thickness"); // READ ONLY
 
     function updateSheetCalc() {
       state.sheetMetal.width = parseFloat(widthInput.value) || 0;
@@ -458,15 +457,8 @@
         wasteRate: state.sheetMetal.wasteRate
       });
 
-      // Update read-only Qty input: N = Length / 1.2
-      if (qtyInput) {
-        qtyInput.value = res.qty.toFixed(2);
-      }
-
-      // Update read-only Thickness input: H10 Excel formula: =IF(A10<31,"26#",IF(A10<76,"24#",IF(A10<151,"22#",IF(A10<225,"20#","18#"))))
-      if (thicknessInput) {
-        thicknessInput.value = res.gaugeName;
-      }
+      if (qtyInput) qtyInput.value = res.qty.toFixed(2);
+      if (thicknessInput) thicknessInput.value = res.gaugeName;
 
       const tsaiEl = document.getElementById("res-sheet-tsai");
       const sheetsEl = document.getElementById("res-sheet-3x7");
@@ -486,17 +478,6 @@
 
     [widthInput, heightInput, lengthInput, wasteInput].forEach((el) => {
       if (el) el.addEventListener("input", updateSheetCalc);
-    });
-
-    // Quick length preset buttons (1m, 1.2m, 1.5m)
-    quickLenBtns.forEach((btn) => {
-      btn.addEventListener("click", () => {
-        const val = btn.getAttribute("data-len");
-        if (lengthInput) {
-          lengthInput.value = val;
-          updateSheetCalc();
-        }
-      });
     });
 
     updateSheetCalc();
