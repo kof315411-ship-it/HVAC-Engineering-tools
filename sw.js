@@ -1,4 +1,4 @@
-const CACHE_NAME = "hvac-tools-v1";
+const CACHE_NAME = "hvac-tools-v2";
 const ASSETS_TO_CACHE = [
   "./",
   "./index.html",
@@ -8,7 +8,9 @@ const ASSETS_TO_CACHE = [
   "./js/duct-loss.js",
   "./js/sheet-metal.js",
   "./js/pipe-sizer.js",
-  "./manifest.json"
+  "./manifest.json",
+  "./icons/icon-192.png",
+  "./icons/icon-512.png"
 ];
 
 // Install Event - Cache assets
