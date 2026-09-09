@@ -200,14 +200,14 @@
           <div class="form-group">
             <label class="form-label">風管長CM (L_cm)</label>
             <div class="input-wrapper">
-              <input type="number" id="sheet-width" class="form-control has-unit" value="100" step="any" inputmode="decimal">
+              <input type="number" id="sheet-width" class="form-control has-unit" value="80" step="any" inputmode="decimal">
               <span class="input-unit">cm</span>
             </div>
           </div>
           <div class="form-group">
             <label class="form-label">風管寬CM (W_cm)</label>
             <div class="input-wrapper">
-              <input type="number" id="sheet-height" class="form-control has-unit" value="50" step="any" inputmode="decimal">
+              <input type="number" id="sheet-height" class="form-control has-unit" value="40" step="any" inputmode="decimal">
               <span class="input-unit">cm</span>
             </div>
           </div>
@@ -239,10 +239,10 @@
             </div>
           </div>
           <div class="form-group">
-            <label class="form-label">板材換算 (Gauge)</label>
-            <select id="sheet-thickness" class="form-control">
-              <!-- Dynamically populated -->
-            </select>
+            <label class="form-label">板材換算 (H10判斷公式自動推算)</label>
+            <div class="input-wrapper">
+              <input type="text" id="sheet-thickness" class="form-control has-unit" readonly style="background-color: #e2e8f0; font-weight: bold;" value="22# (0.8mm)">
+            </div>
           </div>
         </div>
       </div>

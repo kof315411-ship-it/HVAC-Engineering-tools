@@ -3,25 +3,30 @@
  */
 
 window.HVACSheetMetal = {
-  STEEL_GAUGES: [
-    { mm: 0.5, name: "26# (0.5mm)", weightPerM2: 3.925 },
-    { mm: 0.6, name: "24# (0.6mm)", weightPerM2: 4.71 },
-    { mm: 0.8, name: "22# (0.8mm)", weightPerM2: 6.536 },
-    { mm: 1.0, name: "20# (1.0mm)", weightPerM2: 7.85 },
-    { mm: 1.2, name: "18# (1.2mm)", weightPerM2: 9.42 },
-  ],
+  // Excel H10 formula: =IF(A10=0,"",IF(A10<31,"26#",IF(A10<76,"24#",IF(A10<151,"22#",IF(A10<225,"20#","18#")))))
+  getGaugeByLengthCM: function(lengthCM) {
+    const a = parseFloat(lengthCM) || 0;
+    if (a < 31) return { gauge: "26#", mm: 0.5, name: "26# (0.5mm)", weightPerM2: 3.925 };
+    if (a < 76) return { gauge: "24#", mm: 0.6, name: "24# (0.6mm)", weightPerM2: 4.71 };
+    if (a < 151) return { gauge: "22#", mm: 0.8, name: "22# (0.8mm)", weightPerM2: 6.536 };
+    if (a < 225) return { gauge: "20#", mm: 1.0, name: "20# (1.0mm)", weightPerM2: 7.85 };
+    return { gauge: "18#", mm: 1.2, name: "18# (1.2mm)", weightPerM2: 9.42 };
+  },
 
   calcSheetMetal: function(params) {
-    const widthCM = params.widthCM !== undefined ? params.widthCM : 100;
-    const heightCM = params.heightCM !== undefined ? params.heightCM : 50;
+    const widthCM = params.widthCM !== undefined ? params.widthCM : 80;
+    const heightCM = params.heightCM !== undefined ? params.heightCM : 40;
     const lengthM = params.lengthM !== undefined ? params.lengthM : 1.2;
     const wasteRate = params.wasteRate !== undefined ? params.wasteRate : 0.10;
-    const thicknessMM = params.thicknessMM !== undefined ? params.thicknessMM : 0.8;
 
     const w = parseFloat(widthCM) || 0;
     const h = parseFloat(heightCM) || 0;
     const l = parseFloat(lengthM) || 0;
     const waste = parseFloat(wasteRate) || 0;
+
+    // Excel H10 formula decision based on A10 (長CM):
+    const maxSideCM = Math.max(w, h);
+    const gaugeInfo = this.getGaugeByLengthCM(maxSideCM);
 
     // Excel formula: 風管支數 N = 米數 (長度 M) / 1.2
     const n = l > 0 ? l / 1.2 : 0;
@@ -44,7 +49,6 @@ window.HVACSheetMetal = {
     const sheets3x7Gross = grossTsai / 21.0;
 
     // 總重量 (kg) = M2數 * 鈑材每米平方重量
-    const gaugeInfo = this.STEEL_GAUGES.find(g => Math.abs(g.mm - thicknessMM) < 0.05) || this.STEEL_GAUGES[2];
     const weightKgNet = netAreaM2 * gaugeInfo.weightPerM2;
     const weightKgGross = grossAreaM2 * gaugeInfo.weightPerM2;
 
@@ -62,6 +66,7 @@ window.HVACSheetMetal = {
       wasteRatePercent: waste * 100,
       thicknessMM: gaugeInfo.mm,
       gaugeName: gaugeInfo.name,
+      gauge: gaugeInfo.gauge,
       perimeterCM,
       perimeterM,
       netAreaM2,

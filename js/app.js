@@ -52,11 +52,10 @@
       segments: []
     },
     sheetMetal: {
-      width: 100,
-      height: 50,
+      width: 80,
+      height: 40,
       length: 1.2,
-      wasteRate: 10,
-      thicknessMM: 0.8
+      wasteRate: 10
     },
     pipeSizer: {
       sysType: "chilled",
@@ -435,46 +434,38 @@
   }
 
   /* ==========================================================================
-     TAB 3: 鐵皮才數計算 Controller (風管支數 N = 長度 M / 1.2 唯讀)
+     TAB 3: 鐵皮才數計算 Controller (帶入 Excel H10 板材自動判斷公式)
      ========================================================================== */
   function initSheetMetal() {
     const widthInput = document.getElementById("sheet-width");
     const heightInput = document.getElementById("sheet-height");
     const lengthInput = document.getElementById("sheet-length");
-    const qtyInput = document.getElementById("sheet-qty"); // READ-ONLY!
+    const qtyInput = document.getElementById("sheet-qty"); // READ ONLY!
     const wasteInput = document.getElementById("sheet-waste");
-    const thicknessSelect = document.getElementById("sheet-thickness");
+    const thicknessInput = document.getElementById("sheet-thickness"); // READ ONLY!
     const quickLenBtns = document.querySelectorAll(".btn-quick-len");
-
-    if (thicknessSelect) {
-      thicknessSelect.innerHTML = "";
-      window.HVACSheetMetal.STEEL_GAUGES.forEach((g) => {
-        const opt = document.createElement("option");
-        opt.value = g.mm;
-        opt.textContent = g.name;
-        if (g.mm === 0.8) opt.selected = true;
-        thicknessSelect.appendChild(opt);
-      });
-    }
 
     function updateSheetCalc() {
       state.sheetMetal.width = parseFloat(widthInput.value) || 0;
       state.sheetMetal.height = parseFloat(heightInput.value) || 0;
       state.sheetMetal.length = parseFloat(lengthInput.value) || 0;
       state.sheetMetal.wasteRate = (parseFloat(wasteInput.value) || 0) / 100;
-      state.sheetMetal.thicknessMM = parseFloat(thicknessSelect ? thicknessSelect.value : 0.8) || 0.8;
 
       const res = window.HVACSheetMetal.calcSheetMetal({
         widthCM: state.sheetMetal.width,
         heightCM: state.sheetMetal.height,
         lengthM: state.sheetMetal.length,
-        wasteRate: state.sheetMetal.wasteRate,
-        thicknessMM: state.sheetMetal.thicknessMM
+        wasteRate: state.sheetMetal.wasteRate
       });
 
       // Update read-only Qty input: N = Length / 1.2
       if (qtyInput) {
         qtyInput.value = res.qty.toFixed(2);
+      }
+
+      // Update read-only Thickness input: H10 Excel formula: =IF(A10<31,"26#",IF(A10<76,"24#",IF(A10<151,"22#",IF(A10<225,"20#","18#"))))
+      if (thicknessInput) {
+        thicknessInput.value = res.gaugeName;
       }
 
       const tsaiEl = document.getElementById("res-sheet-tsai");
@@ -493,7 +484,7 @@
       if (clipsEl) clipsEl.innerText = res.flangeClipsPcs;
     }
 
-    [widthInput, heightInput, lengthInput, wasteInput, thicknessSelect].forEach((el) => {
+    [widthInput, heightInput, lengthInput, wasteInput].forEach((el) => {
       if (el) el.addEventListener("input", updateSheetCalc);
     });
 
