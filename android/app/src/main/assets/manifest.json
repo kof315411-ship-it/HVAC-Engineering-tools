@@ -1,6 +1,6 @@
 {
-  "name": "HVAC 空調工程離線小工具",
-  "short_name": "空調工程",
+  "name": "空調工程小工具",
+  "short_name": "空調工程小工具",
   "description": "離線空調負載計算、風管壓損、鐵皮才數與管徑表速查工具",
   "start_url": "index.html",
   "display": "standalone",
