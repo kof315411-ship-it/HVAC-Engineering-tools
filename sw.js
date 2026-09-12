@@ -1,4 +1,4 @@
-const CACHE_NAME = "hvac-tools-v6";
+const CACHE_NAME = "hvac-tools-v7";
 const ASSETS_TO_CACHE = [
   "./",
   "./index.html",
@@ -11,6 +11,7 @@ const ASSETS_TO_CACHE = [
   "./js/wire-sizer.js",
   "./js/insulation-sizer.js",
   "./js/split-ac-sizer.js",
+  "./js/xlsx.full.min.js",
   "./manifest.json",
   "./icons/icon-192.png",
   "./icons/icon-512.png"

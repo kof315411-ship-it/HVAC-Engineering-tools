@@ -81,7 +81,10 @@
       <div class="card">
         <div class="card-title">
           <span>空間變數列表</span>
-          <button class="btn btn-primary btn-sm" id="btn-add-room">+ 新增空間</button>
+          <div style="display: flex; gap: 8px;">
+            <button class="btn btn-success btn-sm" id="btn-export-load-excel">📊 匯出 Excel 報告書</button>
+            <button class="btn btn-primary btn-sm" id="btn-add-room">+ 新增空間</button>
+          </div>
         </div>
         <div id="room-list-container">
           <!-- Dynamic rooms will be rendered here -->
@@ -806,6 +809,7 @@
     </button>
   </div>
 
+  <script src="js/xlsx.full.min.js"></script>
   <script src="js/load-calc.js"></script>
   <script src="js/duct-loss.js"></script>
   <script src="js/sheet-metal.js"></script>

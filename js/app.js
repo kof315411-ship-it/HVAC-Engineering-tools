@@ -192,6 +192,33 @@
       });
     }
 
+    const exportExcelBtn = document.getElementById("btn-export-load-excel");
+    if (exportExcelBtn) {
+      exportExcelBtn.addEventListener("click", () => {
+        const calculatedRooms = state.loadCalc.rooms.map((room) => {
+          return window.HVACLoadCalc.calcRoomLoad({
+            outTemp: state.loadCalc.outTemp,
+            outRH: state.loadCalc.outRH,
+            roomName: room.roomName,
+            inTemp: room.inTemp,
+            inRH: room.inRH,
+            height: room.height,
+            areaM2: room.areaM2,
+            baseRate: room.baseRate,
+            windowArea: room.windowArea,
+            windowRate: room.windowRate,
+            people: room.people,
+            equipHP: room.equipHP,
+            equipW: room.equipW,
+            freshAirCMH: room.freshAirCMH
+          });
+        });
+
+        const outEnthalpy = window.HVACLoadCalc.calcEnthalpy(state.loadCalc.outTemp, state.loadCalc.outRH);
+        window.HVACLoadCalc.exportToExcel(state.loadCalc.outTemp, state.loadCalc.outRH, outEnthalpy, calculatedRooms);
+      });
+    }
+
     buildRoomCardsDOM();
   }
 
