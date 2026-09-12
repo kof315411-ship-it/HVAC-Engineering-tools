@@ -532,8 +532,8 @@
       const clipsEl = document.getElementById("res-sheet-clips");
       const gasketEl = document.getElementById("res-sheet-gasket");
 
-      if (tsaiEl) tsaiEl.innerHTML = `${Math.round(res.tsai).toLocaleString()} <span style="font-size: 20px;">才</span> (${res.tsai.toFixed(1)} 才)`;
-      if (sheetsEl) sheetsEl.innerText = `需 3'×7' 鍍鋅鐵皮: ${Math.round(res.sheets3x7)} 張 (${res.sheets3x7.toFixed(1)} 張) | M2數: ${Math.round(res.areaM2)} m² (${res.areaM2.toFixed(1)} m²)`;
+      if (tsaiEl) tsaiEl.innerHTML = `${Math.round(res.tsai).toLocaleString()} <span style="font-size: 20px;">才</span> (${res.tsai.toFixed(1)} 才，含 ${res.wasteRatePercent}% 損耗)`;
+      if (sheetsEl) sheetsEl.innerText = `需 3'×7' 鍍鋅鐵皮: ${Math.round(res.sheets3x7)} 張 (${res.sheets3x7.toFixed(1)} 張) | M2數: ${Math.round(res.areaM2)} m² (${res.areaM2.toFixed(1)} m²) | 淨才數: ${res.tsaiNet.toFixed(1)} 才`;
 
       if (perimEl) perimEl.innerText = res.perimeterCM;
       if (weightEl) weightEl.innerText = Math.round(res.weightKg).toLocaleString();

@@ -37,8 +37,12 @@ window.HVACSheetMetal = {
     const exactN = l > 0 ? l / 1.2 : 0;
     const n = Math.ceil(exactN);
 
-    // Excel Col G (保溫才數): = (((長CM + 寬CM) * 2 * 米數) / 9.29) * 1.2
-    const tsai = l > 0 ? (((w + h) * 2 * l) / 9.29) * 1.2 : 0;
+    // 損耗加成乘數 = 1 + wasteRate (若輸入 10% 則為 1.10，若輸入 20% 則為 1.20)
+    const wasteMultiplier = 1.0 + waste;
+
+    // Excel Col G (保溫才數 / 鐵皮才數): = (((長CM + 寬CM) * 2 * 米數) / 9.29) * (1 + 損耗率)
+    const tsaiNet = l > 0 ? (((w + h) * 2 * l) / 9.29) : 0;
+    const tsai = tsaiNet * wasteMultiplier;
 
     // Excel Col E (3'×7'張數): = 保溫才數 / 21
     const sheets3x7 = tsai / 21.0;
@@ -46,8 +50,9 @@ window.HVACSheetMetal = {
     // Excel Col F (M2數): = 保溫才數 / 10.76
     const areaM2 = tsai / 10.76;
 
-    // Excel Col I (總重量 kg): = (((長CM + 寬CM) * 2 * 7.85) * 米數) / 100
-    const weightKg = l > 0 ? (((w + h) * 2 * 7.85 * l) / 100.0) : 0;
+    // Excel Col I (總重量 kg): = ((((長CM + 寬CM) * 2 * 7.85) * 米數) / 100) * (1 + 損耗率)
+    const weightKgNet = l > 0 ? (((w + h) * 2 * 7.85 * l) / 100.0) : 0;
+    const weightKg = weightKgNet * wasteMultiplier;
 
     // Excel Col J (L法蘭角 個): = 風管支數 * 8
     const flangeCornersPcs = Math.round(n * 8);
@@ -70,9 +75,11 @@ window.HVACSheetMetal = {
       gauge: gaugeInfo.gauge,
       perimeterCM: perimeterCM,
       perimeterM: perimeterM,
+      tsaiNet: tsaiNet,
       areaM2: areaM2,
       tsai: tsai,
       sheets3x7: sheets3x7,
+      weightKgNet: weightKgNet,
       weightKg: weightKg,
       flangeCornersPcs: flangeCornersPcs,
       flangeClipsPcs: flangeClipsPcs,
